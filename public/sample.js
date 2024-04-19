@@ -29,9 +29,14 @@ const w = 400;
 const h = 400;
 
 let maxCatIndex;
-let taskNum, taskCnt, useShape, colorPalette, colors, sampleCnt
+let taskNum, taskCnt, useShape, colorPalette, colors, sampleCnt, prevValue;
 let timeleft = 150;
-let alreadyClick = false
+let alreadyClick = false;
+prevValue = 0;
+// let directory='./asset/Examples/';
+// let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
+let directory='./asset/Tasks/';
+let samples = ['t01_cor@0.3_m@1_b@0.csv','t02_cor@0.3_m@0.5_b@0.5.csv','t03_cor@0.3_m@-2_b@1.csv','t04_cor@0.3_m@-0.5_b@1.csv','t05_cor@0.8_m@2_b@2.csv','t06_cor@0.8_m@0.5_b@-1.csv','t07_cor@0.8_m@-1_b@-1.csv','t08_cor@0.8_m@-0.3_b@0.75.csv']
 
 const svg = d3.select("#sample-div")
   .append("svg")
@@ -39,111 +44,103 @@ const svg = d3.select("#sample-div")
   .attr("height", height + margin.top + margin.bottom)
   .attr('style', 'background-color: white')
   .append("g")
-  .attr("transform", `translate(${margin.left}, ${margin.top})`)
+  .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
-function genChart(num) {
+
+var _d,xMin,xMax,yMin,yMax;
+
+// variables for drawing
+var line;
+
+function genChart() {
     const urlParams = new URLSearchParams(window.location.search);
-    sampleCnt = urlParams.get('samplecnt');
+    sampleCnt=urlParams.get("samplecnt");
 
-    let d_num = num;
-    if (parseInt(sampleCnt) == 3) {
+    if (parseInt(sampleCnt) == samples.length) {
       $('#try-more-btn').hide()
     }
 
-    fetch("color_palettes.json")
-      .then(response => response.json())
-      .then(function(json) {
-          let colorName = json['DO9875JDFI']
-          colors = colorName['value']
-          shuffle(colors)
+    const fname = directory+samples[sampleCnt-1];
+
+    d3.csv(fname).then(function(data){
+      _d = data;
+      console.log(_d);
+
+    xMin = d3.min(data, function(d) { return +d.x; });
+    xMax = d3.max(data, function(d) { return +d.x; });
+    yMin = d3.min(data, function(d) { return +d.y; });
+    yMax = d3.max(data, function(d) { return +d.y; });
+
+    const x = d3.scaleLinear()
+        .domain([xMin, xMax])
+        .range([ 0, width ]);
+
+    svg.append("g")
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(x).tickFormat((domainn,number)=>{return ""}));
+
+    const y = d3.scaleLinear()
+        .domain([yMin-0.5, yMax+0.5])
+        .range([ height, 0]);
+
+    svg.append("g")
+        .call(d3.axisLeft(y).tickFormat((domainn,number)=>{return ""}));
+
+    });
 
 
-          d3.csv("./asset/Tasks/t01_cor@0.3_m@1_b@0.csv").then(function(data) {
-
-          data = data.slice(0,d_num)
-          const x = d3.scaleLinear()
-            .domain([-2.5,2.5])
-            .range([ 0, width ]);
-
-          svg.append("g")
-            .attr("transform", `translate(0, ${height})`)
-            .call(d3.axisBottom(x).tickFormat((domainn,number)=>{return ""}));
-
-          const y = d3.scaleLinear()
-            .domain([-2.5, 2.5])
-            .range([ height, 0]);
-
-          svg.append("g")
-            .call(d3.axisLeft(y).tickFormat((domainn,number)=>{return ""}));
-
-          const color = d3.scaleOrdinal()
-            .domain(["0", "1", "2", "3", "4", "5"])
-            .range(colors)
-
-          if (useShape == 'T') {
-            svg.append('g')
-            .selectAll("dot")
-            .data(data)
-            .enter().append("path")
-            .attr("d", d3.symbol().size(575).type(d3.symbolSquare))
-            .attr("transform", d => {
-              return "translate(" + x(d.x) + "," + y(d.y) + ")";
-            })
-            .style('fill', function(d) {
-                return `url(#shape_${d.ca})`
-            })
-          } else {
-            svg.append('g')
-            .selectAll("dot")
-            .data(data)
-            .attr("cx", function (d) { return x(d.x); } )
-            .attr("cy", function (d) { return y(d.y); } )
-            .join("circle")
-            .attr("cx", function (d) { return x(d.x); } )
-            .attr("cy", function (d) { return y(d.y); } )
-            .attr("r", 3.5)
-            .style("fill", function (d) { return color(d.ca) } )
-          }
-          
-
-
-          let averagesList = [];
-          for(let i = 0; i < categoryNum; i++) {
-            averagesList.push(d3.mean(data.filter(function(d){ return d.ca == i.toString() }), function(d) { return d.y; }))
-            $('#check-div').append(
-              '<div class="col-sm" style="background-color: white" id="ans-'+i.toString()+'">'+
-                '<div class="form-check" '+'id="'+i.toString()+'-check-div">'+
-                  '<input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" value='+i.toString()+'>'+
-                    '<label class="form-check-label" for="flexRadioDefault1">'+
-                      '<div style="width: 23px; height: 23px; border-radius: 70%; background-color:'+colors[i]+';"></div>'+
-                    '</label>'+
-                  '</div>'+
-                '</div>'
-            )
-          }
-
-              $('input[type=radio]').on('change', function() {
-                if (!alreadyClick) {
-                  alreadyClick = true
-                $('#ans-1').css('border-style', 'solid')
-                $('#ans-1').css('border-width', '2px')
-                $('#ans-1').css('border-color', 'red')
-                $( "#ans-1" ).append( '<h6>This is the correct answer.</h6>' );
-                }
-            })
-          
-          
-          maxCatIndex = averagesList.indexOf(Math.max(...averagesList)).toString();
-
-        })
-
-      });
 }
 
+function updateChart(_d,num){
+    num = +num;
+    let d = _d.slice(0,num+1);
+    const x = d3.scaleLinear()
+        .domain([xMin, xMax])
+        .range([ 0, width ]);
+    const y = d3.scaleLinear()
+        .domain([yMin-0.5, yMax+0.5])
+        .range([ height, 0]);
+    svg.append('g')
+        .selectAll("dot")
+        .data(d)
+        .attr("cx", function (d) { return x(d.x); } )
+        .attr("cy", function (d) { return y(d.y); } )
+        .join("circle")
+        .attr("cx", function (d) { return x(d.x); } )
+        .attr("cy", function (d) { return y(d.y); } )
+        .attr("r", 3.5)
+        .style("fill", "Black" );
+}
+
+function mousedown() {
+    var m = d3.mouse(this);
+    line = svg.append("line")
+        .attr("x1", m[0])
+        .attr("y1", m[1])
+        .attr("x2", m[0])
+        .attr("y2", m[1])
+        .attr("stroke", "red");
+
+    svg.on("mousemove", mousemove);
+}
+
+function mousemove() {
+    var m = d3.mouse(this);
+    line.attr("x2", m[0])
+        .attr("y2", m[1]);
+}
+
+function mouseup() {
+    svg.on("mousemove", null);
+}
+
+//Listeners
+//Click button to move to the next example/tutorial
 $( "#try-more-btn" ).click(function() {
   window.location.href = "sample.html?samplecnt="+(parseInt(sampleCnt)+1).toString()
 });
 
+//Need to be reimplented
 $( "#start-task-btn" ).click(function() {
 
   fetch("color_name_code.json")
@@ -168,15 +165,40 @@ $( "#start-task-btn" ).click(function() {
   });
 });
 
-$("#slider-control").change(function(){
+//Slider for scatterplot numbers, could change the tick
+$("#slider-control").change(function(e){
     let slider_elem = $(this);
     let value = slider_elem.val();
-    genChart(value);
-})
 
+    updateChart(_d,value);
+
+});
+
+//Prevent sliding to the left
+$("#slider-control").on("input", function(e) {
+    const currentValue = parseInt(e.target.value, 10);
+
+    if (currentValue > prevValue) {
+        // Allow sliding to the right
+        prevValue = currentValue;
+    } else {
+        // Prevent sliding to the left
+        e.target.value = prevValue;
+    }
+
+    console.log("Slider bar moved");
+    updateChart(_d, currentValue);
+});
+
+//Draw line button
+$("#draw-line-btn").click(function(){
+//user can only draw one line once, and adjust the end points
+    svg.on("mousedown",mousedown)
+        .on("mouseup",mouseup);
+});
 
 $(document).ready(function(){
-  genChart(0)
+  genChart()
   $("#progresss-txt").text(sampleCnt+"/3")
 });
 
@@ -189,6 +211,3 @@ var downloadTimer = setInterval(function(){
   }
   timeleft -= 1;
 }, 100);
-
-
-

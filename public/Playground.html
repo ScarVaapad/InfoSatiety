@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+
+<div id="mySlider"></div>
+
+<script>
+  $(document).ready(function () {
+    $('#mySlider').slider({
+      range: true,
+      min: 0,
+      max: 100,
+      values: [25, 75], // Set initial values for the handles
+      slide: function (event, ui) {
+        // Disable the right handle if it goes beyond the left handle
+        if (ui.values[1] <= ui.values[0]) {
+          return false;
+        }
+      }
+    });
+  });
+</script>
+
+
+<div id="customSlider">
+  <div class="slider-track"></div>
+  <div class="slider-handle"></div>
+</div>
+
+<style>
+  #customSlider {
+    width: 200px;
+    height: 10px;
+    background-color: #ccc;
+    position: relative;
+  }
+
+  .slider-track {
+    width: 100%;
+    height: 100%;
+    background-color: #4CAF50;
+  }
+
+  .slider-handle {
+    width: 20px;
+    height: 20px;
+    background-color: #2196F3;
+    position: absolute;
+    left: 0;
+    cursor: pointer;
+  }
+</style>
+
+<script>
+  const sliderHandle = document.querySelector('.slider-handle');
+  const sliderTrack = document.querySelector('.slider-track');
+
+  sliderHandle.addEventListener('mousedown', function (e) {
+    e.preventDefault();
+    document.addEventListener('mousemove', moveHandle);
+    document.addEventListener('mouseup', stopMoving);
+  });
+
+  function moveHandle(e) {
+    const sliderWidth = sliderTrack.clientWidth;
+    const handleWidth = sliderHandle.clientWidth;
+    const newPosition = Math.min(Math.max(e.clientX - handleWidth / 2, 0), sliderWidth - handleWidth);
+    sliderHandle.style.left = newPosition + 'px';
+  }
+
+  function stopMoving() {
+    document.removeEventListener('mousemove', moveHandle);
+    document.removeEventListener('mouseup', stopMoving);
+  }
+</script>
+</body>
+</html>

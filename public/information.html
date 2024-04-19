@@ -6,75 +6,66 @@
         <link href="./index.css" rel="stylesheet">
     </head>
     <body>
-        <div class="container vh-100">
-            <div class="row" style="height: 7%;"></div>
-            <div class="row">
-                <div class="col"></div>
-                <div class="col-10 h-75" style="background-color: #eee; border-radius: 20px">
-                    <div class="d-flex justify-content-center" style="padding-top: 20px;">
-                        <h3>Demographic Information</h3>
-                    </div>
-                    <div class="justify-content-center" style="padding-left: 10px; padding-bottom: 10px;">
-                        <form id="my-form">
-                            <div style="padding-top: 30px">
-                                <p>To which gender do you mostly identify?</p>
-                                <div class="form-check form-check-inline a">
-                                    <input class="form-check-input a" type="radio" name="gender" id="inlineRadio1" value="M" required>
-                                    <label class="form-check-label a" for="inlineRadio1">Male</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input a" type="radio" name="gender" id="inlineRadio2" value="F">
-                                    <label class="form-check-label a" for="inlineRadio2">Female</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input a" type="radio" name="gender" id="inlineRadio2" value="O">
-                                    <label class="form-check-label a" for="inlineRadio2">Other</label>
-                                </div>
-                                <div class="form-check form-check-inline">
-                                    <input class="form-check-input a" type="radio" name="gender" id="inlineRadio2" value="N">
-                                    <label class="form-check-label a" for="inlineRadio2">Prefer not to answer</label>
-                                </div>
-                            </div>
-                            <div class="col-md-3" style="padding-top: 30px">
-                                <label for="validationCustom04" class="form-label">What is your age?</label>
-                                <select class="form-select" id="age-select" name="age" required>
-                                  <option selected disabled value="">Choose...</option>
-                                    <option value="18-29">18-29</option>
-                                    <option value="30-39">30-39</option>
-                                    <option value="40-49">40-49</option>
-                                    <option value="50-59">50-59</option>
-                                    <option value="60-69">60-69</option>
-                                    <option value="70+">70+</option>
-                                </select>
-                              </div>
-                            <div style="padding-top: 30px">
-                              <p>What is your highest level of education?</p>
-                              <div class="col-md-4" tyle="padding-top: 30px">
-                                  <select class="form-select" id="education-select" name="education" required>
-                                      <option selected disabled value="">Choose...</option>
-                                      <option value="Pre-High School">Pre-High School</option>
-                                      <option value="High School">High School</option>
-                                      <option value="Some College">Some College</option>
-                                      <option value="Graduated from College">Graduated from College</option>
-                                      <option value="Graduate Degree">Graduate Degree</option>
-                                      <option value="Other">Other</option>
-                                  </select>
-                              </div>
-                            </div>
-                            <div class="d-flex justify-content-center" style="padding-top: 20px;">
-                                <button type="submit" class="btn btn-primary" style="width: 35%;" id="start-sample-btn">Next</button>
-                            </div>
-                        </form>
-                    </div>
+    <div class="container vh-100">
+        <div class="row" style="height: 7%;"></div>
+        <div class="row">
+            <div class="col"></div>
+            <div class="col-10 h-75" style="background-color: #eee; border-radius: 20px">
+                <div class="d-flex justify-content-center" style="padding-top: 20px;">
+                    <h3>Demographic Information</h3>
                 </div>
-                <div class="col"></div>
-              </div>
-              <div class="row" style="height: 7%;"></div>
-        </div> 
+                <div class="justify-content-center" style="padding-left: 10px; padding-bottom: 10px;">
+                    <form id="my-form">
+                        <div class="col-md-3" style="padding-top: 30px">
+                            <p>What is your gender?</p>
+                            <select class="form-select" id="gender-select" name="gender" required>
+                                <option selected disabled value="">Choose...</option>
+                                <option value="M">Male</option>
+                                <option value="F">Female</option>
+                                <option value="O">Other</option>
+                                <option value="N">Rather not to tell</option>
+                            </select>
+                        </div>
+                        <div class="col-md-3" style="padding-top: 30px">
+                            <p> What is your age?</p>
+                            <select class="form-select" id="age-select" name="age" required>
+                                <option selected disabled value="">Choose...</option>
+                                <option value="18-29">18-29</option>
+                                <option value="30-39">30-39</option>
+                                <option value="40-49">40-49</option>
+                                <option value="50-59">50-59</option>
+                                <option value="60-69">60-69</option>
+                                <option value="70+">70+</option>
+                            </select>
+                        </div>
+                        <div style="padding-top: 30px">
+                            <p>What is your highest level of education?</p>
+                            <div class="col-md-4" tyle="padding-top: 30px">
+                                <select class="form-select" id="education-select" name="education" required>
+                                    <option selected disabled value="">Choose...</option>
+                                    <option value="Pre-High School">Pre-High School</option>
+                                    <option value="High School">High School</option>
+                                    <option value="Some College">Some College</option>
+                                    <option value="Graduated from College">Graduated from College</option>
+                                    <option value="Graduate Degree">Graduate Degree</option>
+                                    <option value="Other">Other</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="d-flex justify-content-center" style="padding-top: 20px;">
+                            <button type="submit" class="btn btn-primary" style="width: 35%;" id="start-sample-btn">Next</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="col"></div>
+        </div>
+        <div class="row" style="height: 7%;"></div>
+    </div>
 
-        <script src="https://d3js.org/d3.v7.min.js"></script>
-        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
-        <script type="module" src="./info.js" ></script>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.6.0/jquery.min.js"></script>
+    <script type="module" src='./information.js' ></script>
     </body>
 </html>
