@@ -20,7 +20,6 @@ function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
 
-
 // set the dimensions and margins of the graph
 const margin = {top: 10, right: 30, bottom: 30, left: 60},
     width = 660 - margin.left - margin.right,
@@ -50,7 +49,10 @@ const svg = d3.select("#sample-div")
 var _d,xMin,xMax,yMin,yMax;
 
 // variables for drawing
-var line;
+let line = d3.line()
+    .x(d => d.x)
+    .y(d => d.y);
+
 
 function genChart() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -112,27 +114,7 @@ function updateChart(_d,num){
         .style("fill", "Black" );
 }
 
-function mousedown() {
-    var m = d3.mouse(this);
-    line = svg.append("line")
-        .attr("x1", m[0])
-        .attr("y1", m[1])
-        .attr("x2", m[0])
-        .attr("y2", m[1])
-        .attr("stroke", "red");
 
-    svg.on("mousemove", mousemove);
-}
-
-function mousemove() {
-    var m = d3.mouse(this);
-    line.attr("x2", m[0])
-        .attr("y2", m[1]);
-}
-
-function mouseup() {
-    svg.on("mousemove", null);
-}
 
 //Listeners
 //Click button to move to the next example/tutorial
@@ -193,8 +175,33 @@ $("#slider-control").on("input", function(e) {
 //Draw line button
 $("#draw-line-btn").click(function(){
 //user can only draw one line once, and adjust the end points
-    svg.on("mousedown",mousedown)
-        .on("mouseup",mouseup);
+    let isDrawing = false;
+    let data = [];
+    let startPoint = null;
+
+    svg.on("mousedown", function(event) {
+        isDrawing = true;
+        let coords = d3.pointer(event);
+        startPoint = {x: coords[0], y: coords[1]};
+        data = [startPoint]; // Clear the old line data
+        svg.selectAll("path").remove(); // Clear the old line from the SVG
+    })
+        .on("mousemove", function(event) {
+            if (!isDrawing) return;
+            let coords = d3.pointer(event);
+            data[1]={x: coords[0], y: coords[1]};
+            svg.selectAll("path").remove(); // Clear the old line from the SVG
+            svg.append("path") // Draw the new line
+                .datum(data)
+                .attr("fill", "none")
+                .attr("stroke", "black")
+                .attr("stroke-width", 1.5)
+                .attr("d", line);
+        })
+        .on("mouseup", function() {
+            isDrawing = false;
+        });
+
 });
 
 $(document).ready(function(){
