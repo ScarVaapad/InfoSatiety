@@ -1,6 +1,5 @@
 // import  {updateDB}  from "./firebase.js";
 //
-alert('what is this');
 let values = {}
 console.log('what is this?');
 $( "#my-form" ).submit(function( event ) {

@@ -41,18 +41,27 @@ const svg = d3.select("#sample-div")
   .append("svg")
   .attr("width",  width + margin.left + margin.right)
   .attr("height", height + margin.top + margin.bottom)
-  .attr('style', 'background-color: white')
-  .append("g")
+  .attr('style', 'background-color: white');
+
+const margin_svg = svg.append("g")
   .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
+let _d,xMin,xMax,yMin,yMax;
 
-var _d,xMin,xMax,yMin,yMax;
+// variables for adding data into the scatter plot
+// first, how many more data points will be revealed each time
+const d_reveal = 5;
+// then, how many data points are revealed in total
+let d_total = 0;
+
 
 // variables for drawing
 let line = d3.line()
     .x(d => d.x)
     .y(d => d.y);
-
+let isDrawing = false;
+let userLineData = [];
+let startPoint = null;
 
 function genChart() {
     const urlParams = new URLSearchParams(window.location.search);
@@ -77,7 +86,7 @@ function genChart() {
         .domain([xMin, xMax])
         .range([ 0, width ]);
 
-    svg.append("g")
+    margin_svg.append("g")
         .attr("transform", `translate(0, ${height})`)
         .call(d3.axisBottom(x).tickFormat((domainn,number)=>{return ""}));
 
@@ -85,7 +94,7 @@ function genChart() {
         .domain([yMin-0.5, yMax+0.5])
         .range([ height, 0]);
 
-    svg.append("g")
+    margin_svg.append("g")
         .call(d3.axisLeft(y).tickFormat((domainn,number)=>{return ""}));
 
     });
@@ -102,7 +111,7 @@ function updateChart(_d,num){
     const y = d3.scaleLinear()
         .domain([yMin-0.5, yMax+0.5])
         .range([ height, 0]);
-    svg.append('g')
+    margin_svg.append('g')
         .selectAll("dot")
         .data(d)
         .attr("cx", function (d) { return x(d.x); } )
@@ -111,51 +120,45 @@ function updateChart(_d,num){
         .attr("cx", function (d) { return x(d.x); } )
         .attr("cy", function (d) { return y(d.y); } )
         .attr("r", 3.5)
-        .style("fill", "Black" );
+        .style("fill", "Black" )
+        .transition(1000)
+        .style("fill", function(d, i) {
+            if (i < d_total-d_reveal){
+                return "Black"; // Color for old data points
+            } else {
+                return "Blue"; // Color for new data points
+            }
+        });
+
 }
 
 
 
 //Listeners
 //Click button to move to the next example/tutorial
-$( "#try-more-btn" ).click(function() {
-  window.location.href = "sample.html?samplecnt="+(parseInt(sampleCnt)+1).toString()
+$( "#add-more-btn" ).click(function() {
+    d_total += d_reveal;
+    updateChart(_d,d_total);
 });
 
 //Need to be reimplented
-$( "#start-task-btn" ).click(function() {
+$( "#submit-result-btn" ).click(function() {
+    //pass the data to the database
 
-  fetch("color_name_code.json")
-    .then(response => response.json())
-    .then(function(json) {
-      const colorSelected = json[getRandomInt(10)]
-
-      fetch("./asset/task_id_code.json")
-        .then(response => response.json())
-        .then(function(json) {
-          
-          const taskNum = json[getRandomInt(10)]
-            let my_current_data = JSON.parse(localStorage.getItem('taskData'))
-            my_current_data['task_info'] = {
-              'task_id': taskNum,
-              'color_palette': colorSelected,
-              'time': Math.floor(Date.now() / 1000)
-            }
-            localStorage.setItem('taskData', JSON.stringify(my_current_data))
-            window.location.href = "task.html?task="+taskNum+"&cnt=0&color="+colorSelected;
-        })
-  });
+    //and if count is 3, submitting will result into the next page
+    if (parseInt(sampleCnt) == samples.length) {
+        window.location.href = "finish.html";
+    }else{
+        window.location.href = "sample.html?samplecnt="+(parseInt(sampleCnt)+1).toString();
+    }
 });
 
 //Slider for scatterplot numbers, could change the tick
 $("#slider-control").change(function(e){
     let slider_elem = $(this);
     let value = slider_elem.val();
-
     updateChart(_d,value);
-
 });
-
 //Prevent sliding to the left
 $("#slider-control").on("input", function(e) {
     const currentValue = parseInt(e.target.value, 10);
@@ -167,46 +170,58 @@ $("#slider-control").on("input", function(e) {
         // Prevent sliding to the left
         e.target.value = prevValue;
     }
-
     console.log("Slider bar moved");
     updateChart(_d, currentValue);
+});
+
+//Button function to add more data to the scatterplot
+$("#add-data-btn").click(function(){
+    let slider_elem = $("#slider-control");
+    let value = slider_elem.val();
+    value = parseInt(value)+1;
+    slider_elem.val(value);
+    updateChart(_d,value);
 });
 
 //Draw line button
 $("#draw-line-btn").click(function(){
 //user can only draw one line once, and adjust the end points
-    let isDrawing = false;
-    let data = [];
-    let startPoint = null;
+    //user line data stored as global variable: userLineData
 
     svg.on("mousedown", function(event) {
         isDrawing = true;
         let coords = d3.pointer(event);
         startPoint = {x: coords[0], y: coords[1]};
-        data = [startPoint]; // Clear the old line data
-        svg.selectAll("path").remove(); // Clear the old line from the SVG
+        userLineData= [startPoint]; // Clear the old line data
+        svg.select("#userLine").remove(); // Clear the old line from the SVG
     })
         .on("mousemove", function(event) {
             if (!isDrawing) return;
             let coords = d3.pointer(event);
-            data[1]={x: coords[0], y: coords[1]};
-            svg.selectAll("path").remove(); // Clear the old line from the SVG
+            userLineData[1]={x: coords[0], y: coords[1]};
+            svg.select("#userLine").remove(); // Clear the old line from the SVG
             svg.append("path") // Draw the new line
-                .datum(data)
+                .datum(userLineData)
                 .attr("fill", "none")
-                .attr("stroke", "black")
+                .attr("stroke", "red")
                 .attr("stroke-width", 1.5)
-                .attr("d", line);
+                .attr("d", line)
+                .attr("id","userLine");
         })
         .on("mouseup", function() {
             isDrawing = false;
+            console.log(userLineData);
         });
+
 
 });
 
 $(document).ready(function(){
-  genChart()
-  $("#progresss-txt").text(sampleCnt+"/3")
+  genChart();
+  $("#slider-control").hide();//pause the slider as we don't use it in our tasks.
+
+  $("#progresss-txt").text(sampleCnt+"/3");
+
 });
 
 var downloadTimer = setInterval(function(){
