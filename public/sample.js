@@ -104,7 +104,7 @@ function genChart() {
 
 function updateChart(_d,num){
     num = +num;
-    let d = _d.slice(0,num+1);
+    let d = _d.slice(0,num);
     const x = d3.scaleLinear()
         .domain([xMin, xMax])
         .range([ 0, width ]);
@@ -121,7 +121,7 @@ function updateChart(_d,num){
         .attr("cy", function (d) { return y(d.y); } )
         .attr("r", 3.5)
         .style("fill", "Black" )
-        .transition(1000)
+        .transition(3000)
         .style("fill", function(d, i) {
             if (i < d_total-d_reveal){
                 return "Black"; // Color for old data points
@@ -135,14 +135,14 @@ function updateChart(_d,num){
 
 
 //Listeners
-//Click button to move to the next example/tutorial
-$( "#add-more-btn" ).click(function() {
-    d_total += d_reveal;
-    updateChart(_d,d_total);
-});
 
 //Need to be reimplented
 $( "#submit-result-btn" ).click(function() {
+    //Give answers to participants
+    // first, show all data points on scatterplot
+    updateChart(_d,_d.length);
+    // then, show the regression line of the scatterplot
+
     //pass the data to the database
 
     //and if count is 3, submitting will result into the next page
@@ -175,19 +175,16 @@ $("#slider-control").on("input", function(e) {
 });
 
 //Button function to add more data to the scatterplot
-$("#add-data-btn").click(function(){
-    let slider_elem = $("#slider-control");
-    let value = slider_elem.val();
-    value = parseInt(value)+1;
-    slider_elem.val(value);
-    updateChart(_d,value);
+$("#add-more-btn").click(function(){
+    d_total += d_reveal;
+    updateChart(_d,d_total);
 });
 
 //Draw line button
 $("#draw-line-btn").click(function(){
 //user can only draw one line once, and adjust the end points
     //user line data stored as global variable: userLineData
-
+    $("#add-more-btn").prop('disabled', true).css('background-color', 'grey');
     svg.on("mousedown", function(event) {
         isDrawing = true;
         let coords = d3.pointer(event);
