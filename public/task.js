@@ -1,5 +1,3 @@
-import  {updateDB}  from "./firebase.js";
-
 function shuffle(array) {
   let currentIndex = array.length,  randomIndex;
 
@@ -18,200 +16,210 @@ function shuffle(array) {
   return array;
 }
 
+function getRandomInt(max) {
+  return Math.floor(Math.random() * max);
+}
 
 // set the dimensions and margins of the graph
 const margin = {top: 10, right: 30, bottom: 30, left: 60},
-    width = 460 - margin.left - margin.right,
-    height = 400 - margin.top - margin.bottom;
+    width = 660 - margin.left - margin.right,
+    height = 600 - margin.top - margin.bottom;
 const w = 400;
 const h = 400;
 
 let maxCatIndex;
-let categoryNum;
-let taskNum, taskCnt, useShape, colorPalette
-let colors
+let taskNum, taskCnt, useShape, colorPalette, colors, sampleCnt, prevValue;
 let timeleft = 150;
+let alreadyClick = false;
+prevValue = 0;
+// let directory='./asset/Examples/';
+// let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
+let directory='./asset/Tasks/';
+let samples = ['t01_cor@0.3_m@1_b@0.csv','t02_cor@0.3_m@0.5_b@0.5.csv','t03_cor@0.3_m@-2_b@1.csv','t04_cor@0.3_m@-0.5_b@1.csv','t05_cor@0.8_m@2_b@2.csv','t06_cor@0.8_m@0.5_b@-1.csv','t07_cor@0.8_m@-1_b@-1.csv','t08_cor@0.8_m@-0.3_b@0.75.csv']
 
-const svg = d3.select("#task-div")
+const svg = d3.select("#sample-div")
   .append("svg")
   .attr("width",  width + margin.left + margin.right)
   .attr("height", height + margin.top + margin.bottom)
-  .attr('style', 'background-color: white')
-  .append("g")
+  .attr('style', 'background-color: white');
+
+const margin_svg = svg.append("g")
   .attr("transform", `translate(${margin.left}, ${margin.top})`);
+
+let _d,xMin,xMax,yMin,yMax;
+
+// variables for adding data into the scatter plot
+// first, how many more data points will be revealed each time
+const d_reveal = 5;
+// then, how many data points are revealed in total
+let d_total = 0;
+
+
+// variables for drawing
+let line = d3.line()
+    .x(d => d.x)
+    .y(d => d.y);
+let isDrawing = false;
+let userLineData = [];
+let startPoint = null;
 
 function genChart() {
     const urlParams = new URLSearchParams(window.location.search);
-    // useShape = urlParams.get('shape');
-    taskNum = urlParams.get('task');
-    taskCnt = urlParams.get('cnt');
-    colorPalette = urlParams.get('color');
+    sampleCnt=urlParams.get("samplecnt");
 
-  fetch("color_palettes.json")
-  .then(response => response.json())
-  .then(function(json) {
-    let colorName = json[colorPalette]
-    colors = colorName['value']
-    shuffle(colors)
-  
+    if (parseInt(sampleCnt) == samples.length) {
+      $('#try-more-btn').hide()
+    }
 
-  //Read the data
-    d3.csv("./dataset/"+taskNum+"/"+taskCnt+".csv").then(function(data) {
-        categoryNum = parseInt(data[data.length-1]['ca'])+1
-        // for (let i = 0; i < categoryNum; i++) {
-        //   let maple = svg.append('defs')
-        //   .append('pattern')
-        //   .attr('id', 'shape_'+i)
-        //   .attr('patternUnits', 'objectBoundingBox')
-        //   .attr('width', 10)
-        //   .attr('height', 10)
-        //   // Append svg to pattern
-        //   .append('svg')
-        //   .attr('x', 0)
-        //   .attr('y', 0)
-        //   .attr('width', 10)
-        //   .attr('height', 10)
+    const fname = directory+samples[sampleCnt-1];
 
-          // let filename = "s" + (i+1)
-          // d3.xml("./asset/"+filename+".svg")
-          // .then(data => {
-          //   const node = document.createElement("style");
-          //   const textnode = document.createTextNode(`.cls-${i+1}{fill:${palette[colorPalette][i]};}`);
-          //   node.appendChild(textnode);
-          //   data.getElementById(filename).appendChild(node)
-          //   maple.node().append(data.documentElement)
-          // });
-        // }
+    d3.csv(fname).then(function(data){
+      _d = data;
+      console.log(_d);
 
+    xMin = d3.min(data, function(d) { return +d.x; });
+    xMax = d3.max(data, function(d) { return +d.x; });
+    yMin = d3.min(data, function(d) { return +d.y; });
+    yMax = d3.max(data, function(d) { return +d.y; });
 
     const x = d3.scaleLinear()
-      .domain([-1.0, 11])
-      .range([ 0, width ]);
+        .domain([xMin, xMax])
+        .range([ 0, width ]);
 
-    svg.append("g")
-      .attr("transform", `translate(0, ${height})`)
-      .call(d3.axisBottom(x).tickFormat((domainn,number)=>{return ""}));
+    margin_svg.append("g")
+        .attr("transform", `translate(0, ${height})`)
+        .call(d3.axisBottom(x).tickFormat((domainn,number)=>{return ""}));
 
     const y = d3.scaleLinear()
-      .domain([-1, 11])
-      .range([ height, 0]);
+        .domain([yMin-0.5, yMax+0.5])
+        .range([ height, 0]);
 
-    svg.append("g")
-      .call(d3.axisLeft(y).tickFormat((domainn,number)=>{return ""}));
+    margin_svg.append("g")
+        .call(d3.axisLeft(y).tickFormat((domainn,number)=>{return ""}));
 
-    const color = d3.scaleOrdinal()
-      .domain(["0", "1", "2", "3", "4", "5", '6', '7', '8', '9'])
-      .range(colors)
+    });
 
-    if (useShape == 'T') {
-      svg.append('g')
-      .selectAll("dot")
-      .data(data)
-      .enter().append("path")
-      .attr("d", d3.symbol().size(575).type(d3.symbolSquare))
-      .attr("transform", d => {
-        return "translate(" + x(d.x) + "," + y(d.y) + ")";
-      })
-      .style('fill', function(d) {
-          return `url(#shape_${d.ca})`
-      })
+
+}
+
+function updateChart(_d,num){
+    num = +num;
+    let d = _d.slice(0,num);
+    const x = d3.scaleLinear()
+        .domain([xMin, xMax])
+        .range([ 0, width ]);
+    const y = d3.scaleLinear()
+        .domain([yMin-0.5, yMax+0.5])
+        .range([ height, 0]);
+    margin_svg.append('g')
+        .selectAll("dot")
+        .data(d)
+        .attr("cx", function (d) { return x(d.x); } )
+        .attr("cy", function (d) { return y(d.y); } )
+        .join("circle")
+        .attr("cx", function (d) { return x(d.x); } )
+        .attr("cy", function (d) { return y(d.y); } )
+        .attr("r", 3.5)
+        .style("fill", "Black" )
+        .transition(3000)
+        .style("fill", function(d, i) {
+            if (i < d_total-d_reveal){
+                return "Black"; // Color for old data points
+            } else {
+                return "Blue"; // Color for new data points
+            }
+        });
+
+}
+
+
+
+//Listeners
+
+//Need to be reimplented
+$( "#submit-result-btn" ).click(function() {
+    //Give answers to participants
+    // first, show all data points on scatterplot
+    updateChart(_d,_d.length);
+    // then, show the regression line of the scatterplot
+
+    //pass the data to the database
+
+    //and if count is 3, submitting will result into the next page
+    if (parseInt(sampleCnt) == samples.length) {
+        window.location.href = "finish.html";
+    }else{
+        window.location.href = "sample.html?samplecnt="+(parseInt(sampleCnt)+1).toString();
+    }
+});
+
+//Slider for scatterplot numbers, could change the tick
+$("#slider-control").change(function(e){
+    let slider_elem = $(this);
+    let value = slider_elem.val();
+    updateChart(_d,value);
+});
+//Prevent sliding to the left
+$("#slider-control").on("input", function(e) {
+    const currentValue = parseInt(e.target.value, 10);
+
+    if (currentValue > prevValue) {
+        // Allow sliding to the right
+        prevValue = currentValue;
     } else {
-      svg.append('g')
-      .selectAll("dot")
-      .data(data)
-      .attr("cx", function (d) { return x(d.x); } )
-      .attr("cy", function (d) { return y(d.y); } )
-      .join("circle")
-      .attr("cx", function (d) { return x(d.x); } )
-      .attr("cy", function (d) { return y(d.y); } )
-      .attr("r", 3.5)
-      .style("fill", function (d) { return color(d.ca) } )
+        // Prevent sliding to the left
+        e.target.value = prevValue;
     }
-    
-
-
-    let averagesList = [];
-    for(let i = 0; i < categoryNum; i++) {
-      averagesList.push(d3.mean(data.filter(function(d){ return d.ca == i.toString() }), function(d) { return d.y; }))
-      $('#check-div').append(
-        '<div class="col-sm" style="background-color: white">'+
-          '<div class="form-check" '+'id="'+i.toString()+'-check-div">'+
-            '<input class="form-check-input" type="radio" name="flexRadioDefault" id="flexRadioDefault1" value='+i.toString()+' required >'+
-              '<label class="form-check-label" for="flexRadioDefault1">'+
-                '<div style="width: 23px; height: 23px; border-radius: 70%; background-color:'+colors[i]+';"></div>'+
-              '</label>'+
-            '</div>'+
-          '</div>'
-      )
-    }
-
-    maxCatIndex = averagesList.indexOf(Math.max(...averagesList)).toString();
-
-  })
+    console.log("Slider bar moved");
+    updateChart(_d, currentValue);
 });
-}
 
-function sleep (time) {
-  return new Promise((resolve) => setTimeout(resolve, time));
-}
+//Button function to add more data to the scatterplot
+$("#add-more-btn").click(function(){
+    d_total += d_reveal;
+    updateChart(_d,d_total);
+});
 
-$("#my-form").submit(function( event ) {
-  event.preventDefault();
-  let check_id = "-1"
-
-  
-  $('input[type=radio]').each(function () {
-    if (this.checked) {
-      check_id = $(this).val()
-    }
-  });
-  let my_current_data = JSON.parse(localStorage.getItem('taskData'))
-  let responseData = {}
-  responseData['time'] = parseFloat((15-timeleft/10).toFixed(2))
-  responseData['ans'] = check_id
-  responseData['colors'] = colors.slice(0, categoryNum)
-  my_current_data['Q_'+taskCnt] = responseData
-
-  localStorage.setItem('taskData', JSON.stringify(my_current_data))
-  if (parseInt(taskCnt) == 44) {
-    
-    updateDB().then((id) => {
-      window.location.href = "finish.html?code="+id
+//Draw line button
+$("#draw-line-btn").click(function(){
+//user can only draw one line once, and adjust the end points
+    //user line data stored as global variable: userLineData
+    $("#add-more-btn").prop('disabled', true).css('background-color', 'grey');
+    svg.on("mousedown", function(event) {
+        isDrawing = true;
+        let coords = d3.pointer(event);
+        startPoint = {x: coords[0], y: coords[1]};
+        userLineData= [startPoint]; // Clear the old line data
+        svg.select("#userLine").remove(); // Clear the old line from the SVG
     })
-    
-  } else {
-    window.location.href = "task.html?task="+taskNum+"&cnt="+(parseInt(taskCnt)+1).toString()+"&color="+colorPalette;
-  }
+        .on("mousemove", function(event) {
+            if (!isDrawing) return;
+            let coords = d3.pointer(event);
+            userLineData[1]={x: coords[0], y: coords[1]};
+            svg.select("#userLine").remove(); // Clear the old line from the SVG
+            svg.append("path") // Draw the new line
+                .datum(userLineData)
+                .attr("fill", "none")
+                .attr("stroke", "red")
+                .attr("stroke-width", 1.5)
+                .attr("d", line)
+                .attr("id","userLine");
+        })
+        .on("mouseup", function() {
+            isDrawing = false;
+            console.log(userLineData);
+        });
+
+
 });
 
-// $( "#next-task-btn" ).click(function() {
-//   let check_id = "-1"
-//   $('input[type=radio]').each(function () {
-//     if (this.checked) {
-//       check_id = $(this).val()
-//     }
-//   });
-//   let my_current_data = JSON.parse(localStorage.getItem('taskData'))
-//   my_current_data['Q_'+taskCnt] = [check_id, parseFloat((15-timeleft/10).toFixed(2))]
+$(document).ready(function(){
+  genChart();
+  $("#slider-control").hide();//pause the slider as we don't use it in our tasks.
 
-//   localStorage.setItem('taskData', JSON.stringify(my_current_data))
-//   if (parseInt(taskCnt) == 41) {
-    
-//     updateDB().then(() => {
-//       window.location.href = "finish.html"
-//     })
-    
-//   } else {
-//     window.location.href = "task.html?task="+taskNum+"&cnt="+(parseInt(taskCnt)+1).toString()+"&color="+colorPalette;
-//   }
-  
-// });
+  $("#progresss-txt").text(sampleCnt+"/3");
 
-$(document).ready(function(){  
-  genChart()
-  $("#progresss-txt").text((parseInt(taskCnt)+1).toString()+"/45")
 });
-
 
 var downloadTimer = setInterval(function(){
   if(timeleft <= 0){
@@ -222,6 +230,3 @@ var downloadTimer = setInterval(function(){
   }
   timeleft -= 1;
 }, 100);
-
-
-

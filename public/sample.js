@@ -32,10 +32,10 @@ let taskNum, taskCnt, useShape, colorPalette, colors, sampleCnt, prevValue;
 let timeleft = 150;
 let alreadyClick = false;
 prevValue = 0;
-// let directory='./asset/Examples/';
-// let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
-let directory='./asset/Tasks/';
-let samples = ['t01_cor@0.3_m@1_b@0.csv','t02_cor@0.3_m@0.5_b@0.5.csv','t03_cor@0.3_m@-2_b@1.csv','t04_cor@0.3_m@-0.5_b@1.csv','t05_cor@0.8_m@2_b@2.csv','t06_cor@0.8_m@0.5_b@-1.csv','t07_cor@0.8_m@-1_b@-1.csv','t08_cor@0.8_m@-0.3_b@0.75.csv']
+let directory='./asset/Examples/';
+let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
+// let directory='./asset/Tasks/';
+// let samples = ['t01_cor@0.3_m@1_b@0.csv','t02_cor@0.3_m@0.5_b@0.5.csv','t03_cor@0.3_m@-2_b@1.csv','t04_cor@0.3_m@-0.5_b@1.csv','t05_cor@0.8_m@2_b@2.csv','t06_cor@0.8_m@0.5_b@-1.csv','t07_cor@0.8_m@-1_b@-1.csv','t08_cor@0.8_m@-0.3_b@0.75.csv']
 
 const svg = d3.select("#sample-div")
   .append("svg")
@@ -132,26 +132,33 @@ function updateChart(_d,num){
 
 }
 
+function showLine(_d){
+    // draw the regression line for the data points on the scatterplot
+    const x = d3.scaleLinear()
+        .domain([xMin, xMax])
+        .range([ 0, width ]);
+    const y = d3.scaleLinear()
+        .domain([yMin-0.5, yMax+0.5])
+        .range([ height, 0]);
+
+    const x_values = _d.map(d => d.x);
+    const y_values = _d.map(d => d.y);
+    const x_mean = d3.mean(x_values);
+    const y_mean = d3.mean(y_values);
+    const m = d3.sum(x_values.map((x, i) => (x - x_mean) * (y_values[i] - y_mean))) / d3.sum(x_values.map(x => (x - x_mean) ** 2));
+    const b = y_mean - m * x_mean;
+    const line_data = [{x: xMin, y: m * xMin + b}, {x: xMax, y: m * xMax + b}];
+    margin_svg.append("path")
+        .datum(line_data)
+        .attr("d", line)
+        .attr("stroke", "yellow")
+        .attr("stroke-width", 2)
+        .attr("fill", "none");
+
+}
 
 
 //Listeners
-
-//Need to be reimplented
-$( "#submit-result-btn" ).click(function() {
-    //Give answers to participants
-    // first, show all data points on scatterplot
-    updateChart(_d,_d.length);
-    // then, show the regression line of the scatterplot
-
-    //pass the data to the database
-
-    //and if count is 3, submitting will result into the next page
-    if (parseInt(sampleCnt) == samples.length) {
-        window.location.href = "finish.html";
-    }else{
-        window.location.href = "sample.html?samplecnt="+(parseInt(sampleCnt)+1).toString();
-    }
-});
 
 //Slider for scatterplot numbers, could change the tick
 $("#slider-control").change(function(e){
@@ -209,24 +216,45 @@ $("#draw-line-btn").click(function(){
             isDrawing = false;
             console.log(userLineData);
         });
-
-
+});
+//Need to be reimplented
+$("#submit-result-btn" ).click(function() {
+    //Give answers to participants
+    // first, show all data points on scatterplot
+    $("#draw-line-btn").prop("disabled", true).css("background-color", "gray");
+    svg.on("mousedown",null);
+    svg.on("mousemove",null);
+    svg.on("mouseup",null);
+    updateChart(_d,_d.length);
+    // then, show the regression line of the scatterplot
+    showLine(_d);
+    //pass the data to the database
 });
 
+$("#next-btn").click(function(){
+    //and if count is 3, submitting will result into the next page
+    if (parseInt(sampleCnt) == samples.length) {
+        window.location.href = "finish.html";
+    }else{
+        window.location.href = "sample.html?samplecnt="+(parseInt(sampleCnt)+1).toString();
+    }
+});
 $(document).ready(function(){
-  genChart();
-  $("#slider-control").hide();//pause the slider as we don't use it in our tasks.
-
-  $("#progresss-txt").text(sampleCnt+"/3");
-
+    genChart();
+    $("#progresss-txt").text(sampleCnt+"/3");
+    $("#slider-control").hide();//pause the slider as we don't use it in our tasks.
+    $("#add-more-btn").show();
+    $("#draw-line-btn").show();
+    $("#submit-result-btn").show();
+    $("#next-btn").hide();
 });
 
-var downloadTimer = setInterval(function(){
-  if(timeleft <= 0){
-    clearInterval(downloadTimer);
-    document.getElementById("countdown").innerHTML = "Time remaining: 0";
-  } else {
-    document.getElementById("countdown").innerHTML = "Time remaining: " + timeleft/10 ;
-  }
-  timeleft -= 1;
-}, 100);
+// var downloadTimer = setInterval(function(){
+//   if(timeleft <= 0){
+//     clearInterval(downloadTimer);
+//     document.getElementById("countdown").innerHTML = "Time remaining: 0";
+//   } else {
+//     document.getElementById("countdown").innerHTML = "Time remaining: " + timeleft/10 ;
+//   }
+//   timeleft -= 1;
+// }, 100);
