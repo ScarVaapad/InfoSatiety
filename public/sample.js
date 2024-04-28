@@ -160,18 +160,24 @@ function showLine(_d){
     const y_mean = d3.mean(y_values);
     const m = d3.sum(x_values.map((x, i) => (x - x_mean) * (y_values[i] - y_mean))) / d3.sum(x_values.map(x => (x - x_mean) ** 2));
     const b = y_mean - m * x_mean;
-    const line_data = [{x: x(xMin), y: m * x(xMin) + b}, {x: x(xMax), y: m * x(xMax) + b}];
+    const reg_line_data = [{x: x(xMin), y: m * x(xMin) + b}, {x: x(xMax), y: m * x(xMax) + b}];
 
     margin_svg.append("path") // Draw the regression line
-        .datum(line_data)
+        .datum(reg_line_data)
         .attr("fill", "none")
         .attr("stroke", "blue")
         .attr("stroke-width", 2.5)
         .attr("d", line)
         .attr("id","regLine");
     console.log("Regression line drawn:");
-    console.log(line_data)
-            
+    
+    reg_line_data.forEach(function(d){
+        d.x += margin.left;
+        d.y += margin.top;
+    }
+    ); 
+    console.log(reg_line_data);
+     
 }
 
 
