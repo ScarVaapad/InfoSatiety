@@ -111,6 +111,7 @@ function updateChart(_d,num){
     const y = d3.scaleLinear()
         .domain([yMin-0.5, yMax+0.5])
         .range([ height, 0]);
+    if(num != _d.length){    
     margin_svg.append('g')
         .selectAll("dot")
         .data(d)
@@ -129,6 +130,18 @@ function updateChart(_d,num){
                 return "Blue"; // Color for new data points
             }
         });
+    }else{//if all data points are shown, then all data points are grey, allowing user to see the regression line in yellow?
+        margin_svg.append('g')
+        .selectAll("dot")
+        .data(d)
+        .attr("cx", function (d) { return x(d.x); } )
+        .attr("cy", function (d) { return y(d.y); } )
+        .join("circle")
+        .attr("cx", function (d) { return x(d.x); } )
+        .attr("cy", function (d) { return y(d.y); } )
+        .attr("r", 3.5)
+        .style("fill", "Grey"); 
+    }
 
 }
 
@@ -141,45 +154,49 @@ function showLine(_d){
         .domain([yMin-0.5, yMax+0.5])
         .range([ height, 0]);
 
-    const x_values = _d.map(d => d.x);
-    const y_values = _d.map(d => d.y);
+    const x_values = _d.map(d => x(d.x));
+    const y_values = _d.map(d => y(d.y));
     const x_mean = d3.mean(x_values);
     const y_mean = d3.mean(y_values);
     const m = d3.sum(x_values.map((x, i) => (x - x_mean) * (y_values[i] - y_mean))) / d3.sum(x_values.map(x => (x - x_mean) ** 2));
     const b = y_mean - m * x_mean;
-    const line_data = [{x: xMin, y: m * xMin + b}, {x: xMax, y: m * xMax + b}];
-    margin_svg.append("path")
-        .datum(line_data)
-        .attr("d", line)
-        .attr("stroke", "yellow")
-        .attr("stroke-width", 2)
-        .attr("fill", "none");
+    const line_data = [{x: x(xMin), y: m * x(xMin) + b}, {x: x(xMax), y: m * x(xMax) + b}];
 
+    margin_svg.append("path") // Draw the regression line
+        .datum(line_data)
+        .attr("fill", "none")
+        .attr("stroke", "blue")
+        .attr("stroke-width", 2.5)
+        .attr("d", line)
+        .attr("id","regLine");
+    console.log("Regression line drawn:");
+    console.log(line_data)
+            
 }
 
 
 //Listeners
 
 //Slider for scatterplot numbers, could change the tick
-$("#slider-control").change(function(e){
-    let slider_elem = $(this);
-    let value = slider_elem.val();
-    updateChart(_d,value);
-});
-//Prevent sliding to the left
-$("#slider-control").on("input", function(e) {
-    const currentValue = parseInt(e.target.value, 10);
+// $("#slider-control").change(function(e){
+//     let slider_elem = $(this);
+//     let value = slider_elem.val();
+//     updateChart(_d,value);
+// });
+// //Prevent sliding to the left
+// $("#slider-control").on("input", function(e) {
+//     const currentValue = parseInt(e.target.value, 10);
 
-    if (currentValue > prevValue) {
-        // Allow sliding to the right
-        prevValue = currentValue;
-    } else {
-        // Prevent sliding to the left
-        e.target.value = prevValue;
-    }
-    console.log("Slider bar moved");
-    updateChart(_d, currentValue);
-});
+//     if (currentValue > prevValue) {
+//         // Allow sliding to the right
+//         prevValue = currentValue;
+//     } else {
+//         // Prevent sliding to the left
+//         e.target.value = prevValue;
+//     }
+//     console.log("Slider bar moved");
+//     updateChart(_d, currentValue);
+// });
 
 //Button function to add more data to the scatterplot
 $("#add-more-btn").click(function(){
@@ -208,7 +225,7 @@ $("#draw-line-btn").click(function(){
                 .datum(userLineData)
                 .attr("fill", "none")
                 .attr("stroke", "red")
-                .attr("stroke-width", 1.5)
+                .attr("stroke-width", 2.5)
                 .attr("d", line)
                 .attr("id","userLine");
         })
@@ -221,6 +238,7 @@ $("#draw-line-btn").click(function(){
 $("#submit-result-btn" ).click(function() {
     //Give answers to participants
     // first, show all data points on scatterplot
+    $("#add-more-btn").prop('disabled', true).css('background-color', 'gray');
     $("#draw-line-btn").prop("disabled", true).css("background-color", "gray");
     svg.on("mousedown",null);
     svg.on("mousemove",null);
