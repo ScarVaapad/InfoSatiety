@@ -63,6 +63,9 @@ let isDrawing = false;
 let userLineData = [];
 let startPoint = null;
 
+// variables for reward calculation
+let reward = 100;
+
 function genChart() {
     const urlParams = new URLSearchParams(window.location.search);
     sampleCnt=urlParams.get("samplecnt");
@@ -180,6 +183,36 @@ function showLine(_d){
      
 }
 
+function calculateCI(_d){ //questionable
+    // calculate the confidence interval for the regression line
+    const x = d3.scaleLinear()
+        .domain([xMin, xMax])
+        .range([ 0, width ]);
+    const y = d3.scaleLinear()
+        .domain([yMin-0.5, yMax+0.5])
+        .range([ height, 0]);
+
+    const x_values = _d.map(d => x(d.x));
+    const y_values = _d.map(d => y(d.y));
+    const x_mean = d3.mean(x_values);
+    const y_mean = d3.mean(y_values);
+    const m = d3.sum(x_values.map((x, i) => (x - x_mean) * (y_values[i] - y_mean))) / d3.sum(x_values.map(x => (x - x_mean) ** 2));
+    const b = y_mean - m * x_mean;
+    const y_hat = _d.map(d => m * x(d.x) + b);
+    const residuals = _d.map((d, i) => y(d.y) - y_hat[i]);
+    const sse = d3.sum(residuals.map(r => r ** 2));
+    const n = _d.length;
+    const se = Math.sqrt(sse / (n - 2));
+    const x_var = d3.sum(x_values.map(x => (x - x_mean) ** 2));
+    const se_m = se / Math.sqrt(x_var);
+    const se_b = se * Math.sqrt(1 / n + x_mean ** 2 / x_var);
+    const t = 2.776; // 99% confidence interval
+    const ci_m = t * se_m;
+    const ci_b = t * se_b;
+
+    return {m: m, b: b, ci_m: ci_m, ci_b: ci_b};
+}
+
 
 //Listeners
 
@@ -206,6 +239,11 @@ function showLine(_d){
 
 //Button function to add more data to the scatterplot
 $("#add-more-btn").click(function(){
+    if(reward >=0){
+        reward -=2
+    }else{
+        reward = 0;
+    }
     d_total += d_reveal;
     updateChart(_d,d_total);
 });
@@ -252,6 +290,9 @@ $("#submit-result-btn" ).click(function() {
     updateChart(_d,_d.length);
     // then, show the regression line of the scatterplot
     showLine(_d);
+    // show the reward
+    alert("You have earned " + reward + " points!");
+
     //pass the data to the database
 });
 
