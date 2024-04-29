@@ -287,13 +287,18 @@ $("#submit-result-btn" ).click(function() {
     svg.on("mousedown",null);
     svg.on("mousemove",null);
     svg.on("mouseup",null);
+    //pass the data to the database
+
     updateChart(_d,_d.length);
     // then, show the regression line of the scatterplot
     showLine(_d);
+    $("#submit-result-btn").hide();
+    $("#next-btn").show();
+
     // show the reward
     alert("You have earned " + reward + " points!");
 
-    //pass the data to the database
+
 });
 
 $("#next-btn").click(function(){
