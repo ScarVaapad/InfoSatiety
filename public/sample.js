@@ -297,8 +297,8 @@ $("#submit-result-btn" ).click(function() {
 
     // show the reward
     alert("You have earned " + reward + " points!");
-
-
+    userBehaviour.stop();
+    userBehaviour.showResult();
 });
 
 $("#next-btn").click(function(){
@@ -317,6 +317,7 @@ $(document).ready(function(){
     $("#draw-line-btn").show();
     $("#submit-result-btn").show();
     $("#next-btn").hide();
+    userBehaviour.start();
 });
 
 // var downloadTimer = setInterval(function(){
