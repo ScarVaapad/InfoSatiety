@@ -16,6 +16,23 @@ function shuffle(array) {
   return array;
 }
 
+// Function to read a single file and print the range
+function readFileAndPrintRange(filename) {
+    d3.csv(filename).then(function(data) {
+        let xValues = data.map(function(d) { return +d.x; });
+        let yValues = data.map(function(d) { return +d.y; });
+
+        let xRange = d3.extent(xValues);
+        let yRange = d3.extent(yValues);
+
+        console.log(`File: ${filename}`);
+        console.log(`X range: ${xRange}`);
+        console.log(`Y range: ${yRange}`);
+    });
+}
+
+
+
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
@@ -32,10 +49,16 @@ let taskNum, taskCnt, useShape, colorPalette, colors, sampleCnt, prevValue;
 let timeleft = 150;
 let alreadyClick = false;
 prevValue = 0;
-let directory='./asset/Examples/';
-let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
-// let directory='./asset/Tasks/';
-// let samples = ['t01_cor@0.3_m@1_b@0.csv','t02_cor@0.3_m@0.5_b@0.5.csv','t03_cor@0.3_m@-2_b@1.csv','t04_cor@0.3_m@-0.5_b@1.csv','t05_cor@0.8_m@2_b@2.csv','t06_cor@0.8_m@0.5_b@-1.csv','t07_cor@0.8_m@-1_b@-1.csv','t08_cor@0.8_m@-0.3_b@0.75.csv']
+// let directory='./asset/Examples/';
+// let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
+let directory='./asset/Tasks/';
+let samples = ['t01_cor@0.3_m@1_b@0.csv','t02_cor@0.3_m@0.5_b@0.5.csv','t03_cor@0.3_m@-2_b@1.csv','t04_cor@0.3_m@-0.5_b@1.csv','t05_cor@0.8_m@2_b@2.csv','t06_cor@0.8_m@0.5_b@-1.csv','t07_cor@0.8_m@-1_b@-1.csv','t08_cor@0.8_m@-0.3_b@0.75.csv']
+
+// test: read all files and print the ranges
+// Read each file and print the range
+let filenames = samples.map(function(sample) {
+    return directory + sample;});//appending directory to file path
+filenames.forEach(readFileAndPrintRange);
 
 const svg = d3.select("#sample-div")
   .append("svg")
@@ -75,10 +98,11 @@ function genChart() {
     }
 
     const fname = directory+samples[sampleCnt-1];
+    console.log(fname);
 
     d3.csv(fname).then(function(data){
       _d = data;
-      console.log(_d);
+    //   console.log(_d);
 
     xMin = d3.min(data, function(d) { return +d.x; });
     xMax = d3.max(data, function(d) { return +d.x; });
@@ -94,7 +118,7 @@ function genChart() {
         .call(d3.axisBottom(x).tickFormat((domainn,number)=>{return ""}));
 
     const y = d3.scaleLinear()
-        .domain([yMin-0.5, yMax+0.5])
+        .domain([-4, 4])
         .range([ height, 0]);
 
     margin_svg.append("g")
@@ -112,7 +136,7 @@ function updateChart(_d,num){
         .domain([xMin, xMax])
         .range([ 0, width ]);
     const y = d3.scaleLinear()
-        .domain([yMin-0.5, yMax+0.5])
+        .domain([-4, 4])
         .range([ height, 0]);
     if(num != _d.length){    
     margin_svg.append('g')
@@ -154,7 +178,7 @@ function showLine(_d){
         .domain([xMin, xMax])
         .range([ 0, width ]);
     const y = d3.scaleLinear()
-        .domain([yMin-0.5, yMax+0.5])
+        .domain([-4, 4])
         .range([ height, 0]);
 
     const x_values = _d.map(d => x(d.x));
@@ -189,7 +213,7 @@ function calculateCI(_d){ //questionable
         .domain([xMin, xMax])
         .range([ 0, width ]);
     const y = d3.scaleLinear()
-        .domain([yMin-0.5, yMax+0.5])
+        .domain([-4, 4])
         .range([ height, 0]);
 
     const x_values = _d.map(d => x(d.x));
@@ -211,6 +235,45 @@ function calculateCI(_d){ //questionable
     const ci_b = t * se_b;
 
     return {m: m, b: b, ci_m: ci_m, ci_b: ci_b};
+}
+
+function drawCILine(_d){
+    // draw the confidence interval for the regression line
+    const x = d3.scaleLinear()
+        .domain([xMin, xMax])
+        .range([ 0, width ]);
+    const y = d3.scaleLinear()
+        .domain([-4, 4])
+        .range([ height, 0]);
+
+    const {m, b, ci_m, ci_b} = calculateCI(_d);
+    const reg_line_data = [{x: x(xMin), y: m * x(xMin) + b}, {x: x(xMax), y: m * x(xMax) + b}];
+    const ci_line_data = [
+        {x: x(xMin), y: m * x(xMin) + b + ci_m + ci_b},
+        {x: x(xMax), y: m * x(xMax) + b + ci_m + ci_b}
+    ];
+
+    margin_svg.append("path") // Draw the upper confidence interval line
+        .datum(ci_line_data)
+        .attr("fill", "none")
+        .attr("stroke", "yellow")
+        .attr("stroke-width", 2.5)
+        .attr("d", line)
+        .attr("id","ciLineUpper");
+
+    const ci_line_data_lower = [
+        {x: x(xMin), y: m * x(xMin) + b - ci_m - ci_b},
+        {x: x(xMax), y: m * x(xMax) + b - ci_m - ci_b}
+    ];
+
+    margin_svg.append("path") // Draw the lower confidence interval line
+        .datum(ci_line_data_lower)
+        .attr("fill", "none")
+        .attr("stroke", "yellow")
+        .attr("stroke-width", 2.5)
+        .attr("d", line)
+        .attr("id","ciLineLower");
+
 }
 
 
@@ -275,6 +338,7 @@ $("#draw-line-btn").click(function(){
         })
         .on("mouseup", function() {
             isDrawing = false;
+            console.log("User line drawn:");
             console.log(userLineData);
         });
 });
@@ -292,11 +356,12 @@ $("#submit-result-btn" ).click(function() {
     updateChart(_d,_d.length);
     // then, show the regression line of the scatterplot
     showLine(_d);
+    drawCILine(_d);
     $("#submit-result-btn").hide();
     $("#next-btn").show();
 
     // show the reward
-    alert("You have earned " + reward + " points!");
+    // alert("You have earned " + reward + " points!");
     userBehaviour.stop();
     userBehaviour.showResult();
 });

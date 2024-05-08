@@ -1,0 +1,100 @@
+./asset/Tasks/t01_cor@0.3_m@1_b@0.csv
+userBehaviour.min.js:5 no config provided. using default..
+sample.js:176 Regression line drawn:
+sample.js:183 
+(2) [{…}, {…}]
+0
+: 
+{x: 60, y: 355.9314777273861}
+1
+: 
+{x: 630, y: 266.2764331541812}
+length
+: 
+2
+./asset/Tasks/t02_cor@0.3_m@0.5_b@0.5.csv
+userBehaviour.min.js:5 no config provided. using default..
+sample.js:176 Regression line drawn:
+sample.js:183 
+(2) [{…}, {…}]
+0
+: 
+{x: 60, y: 349.05516027120206}
+1
+: 
+{x: 630, y: 268.75068039461723}
+length
+: 
+2
+[[Prototype]]
+: 
+Array(0)
+./asset/Tasks/t03_cor@0.3_m@-2_b@1.csv
+userBehaviour.min.js:5 no config provided. using default..
+sample.js:176 Regression line drawn:
+sample.js:183 
+(2) [{…}, {…}]
+0
+: 
+{x: 60, y: 219.99273826205877}
+1
+: 
+{x: 630, y: 315.1901217867424}
+length
+: 
+2
+[[Prototype]]
+: 
+Array(0)
+./asset/Tasks/t04_cor@0.3_m@-0.5_b@1.csv
+userBehaviour.min.js:5 no config provided. using default..
+sample.js:176 Regression line drawn:
+sample.js:183 
+(2) [{…}, {…}]
+0
+: 
+{x: 60, y: 230.94483972879837}
+1
+: 
+{x: 630, y: 311.2493196053833}
+length
+: 
+2
+[[Prototype]]
+: 
+Array(0)
+./asset/Tasks/t05_cor@0.8_m@2_b@2.csv
+userBehaviour.min.js:5 no config provided. using default..
+sample.js:176 Regression line drawn:
+sample.js:183 
+(2) [{…}, {…}]
+0
+: 
+{x: 60, y: 415.40256606623666}
+1
+: 
+{x: 630, y: 128.8837598782403}
+length
+: 
+2
+[[Prototype]]
+: 
+Array(0)
+
+./asset/Tasks/t06_cor@0.8_m@0.5_b@-1.csv
+userBehaviour.min.js:5 no config provided. using default..
+sample.js:176 Regression line drawn:
+sample.js:183 
+(2) [{…}, {…}]
+0
+: 
+{x: 60, y: 393.66254794002793}
+1
+: 
+{x: 630, y: 156.81516583387165}
+length
+: 
+2
+[[Prototype]]
+: 
+Array(0)
