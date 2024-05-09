@@ -49,12 +49,13 @@ let taskNum, taskCnt, useShape, colorPalette, colors, sampleCnt, prevValue;
 let timeleft = 150;
 let alreadyClick = false;
 prevValue = 0;
+
 // let directory='./asset/Examples/';
 // let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
 let directory='./asset/Tasks/';
 let samples = ['t01_cor@0.3_m@1_b@0.csv','t02_cor@0.3_m@0.5_b@0.5.csv','t03_cor@0.3_m@-2_b@1.csv','t04_cor@0.3_m@-0.5_b@1.csv','t05_cor@0.8_m@2_b@2.csv','t06_cor@0.8_m@0.5_b@-1.csv','t07_cor@0.8_m@-1_b@-1.csv','t08_cor@0.8_m@-0.3_b@0.75.csv']
 
-// test: read all files and print the ranges
+// TEST: read all files and print the ranges
 // Read each file and print the range
 let filenames = samples.map(function(sample) {
     return directory + sample;});//appending directory to file path
@@ -89,6 +90,9 @@ let startPoint = null;
 // variables for reward calculation
 let reward = 100;
 
+// variables for user behaviour data collection
+let userBehaviors= {};
+
 function genChart() {
     const urlParams = new URLSearchParams(window.location.search);
     sampleCnt=urlParams.get("samplecnt");
@@ -118,7 +122,7 @@ function genChart() {
         .call(d3.axisBottom(x).tickFormat((domainn,number)=>{return ""}));
 
     const y = d3.scaleLinear()
-        .domain([-4, 4])
+        .domain([-8, 8])
         .range([ height, 0]);
 
     margin_svg.append("g")
@@ -136,7 +140,7 @@ function updateChart(_d,num){
         .domain([xMin, xMax])
         .range([ 0, width ]);
     const y = d3.scaleLinear()
-        .domain([-4, 4])
+        .domain([-8, 8])
         .range([ height, 0]);
     if(num != _d.length){    
     margin_svg.append('g')
@@ -178,7 +182,7 @@ function showLine(_d){
         .domain([xMin, xMax])
         .range([ 0, width ]);
     const y = d3.scaleLinear()
-        .domain([-4, 4])
+        .domain([-8, 8])
         .range([ height, 0]);
 
     const x_values = _d.map(d => x(d.x));
@@ -213,7 +217,7 @@ function calculateCI(_d){ //questionable
         .domain([xMin, xMax])
         .range([ 0, width ]);
     const y = d3.scaleLinear()
-        .domain([-4, 4])
+        .domain([-8, 8])
         .range([ height, 0]);
 
     const x_values = _d.map(d => x(d.x));
@@ -243,7 +247,7 @@ function drawCILine(_d){
         .domain([xMin, xMax])
         .range([ 0, width ]);
     const y = d3.scaleLinear()
-        .domain([-4, 4])
+        .domain([-8, 8])
         .range([ height, 0]);
 
     const {m, b, ci_m, ci_b} = calculateCI(_d);
@@ -315,6 +319,9 @@ $("#add-more-btn").click(function(){
 $("#draw-line-btn").click(function(){
 //user can only draw one line once, and adjust the end points
     //user line data stored as global variable: userLineData
+    userBehaviour.stop();
+    userBehaviors["before-draw-line"] = userBehaviour.showResult();
+
     $("#add-more-btn").prop('disabled', true).css('background-color', 'grey');
     svg.on("mousedown", function(event) {
         isDrawing = true;
@@ -382,6 +389,22 @@ $(document).ready(function(){
     $("#draw-line-btn").show();
     $("#submit-result-btn").show();
     $("#next-btn").hide();
+    userBehaviour.config(
+        {
+            userInfo: true,
+            clicks: true,
+            mouseMovement: true,
+            mouseMovementInterval: 1,
+            mouseScroll: true,
+            timeCount: true,
+            clearAfterProcess: true,
+            processTime: 15,
+            processData: function(results){
+                console.log(results);
+                return results;
+            },
+        }
+    );
     userBehaviour.start();
 });
 
