@@ -1,14 +1,7 @@
-let vlatCnt;
-
-
-$(document).ready(function () {
-    const urlParams = new URLSearchParams(window.location.search);
-    vlatCnt = urlParams.get("vlat_cnt");
-
-
-});
-
-$( "#task-desc" ).submit(function( event ) {
+// import  {updateDB}  from "./firebase.js";
+//
+let values = {}
+$( "#my-form" ).submit(function( event ) {
     // alert( "Handler for .submit() called." );
     event.preventDefault();
 
@@ -19,6 +12,6 @@ $( "#task-desc" ).submit(function( event ) {
 
     //localStorage.setItem('taskData', JSON.stringify({'user_info': values}))
 
-    window.location.href = "task_description.html";
+    window.location.href = "MiniVlat.html";
 
 });

@@ -122,7 +122,7 @@ function genChart() {
         .call(d3.axisBottom(x).tickFormat((domainn,number)=>{return ""}));
 
     const y = d3.scaleLinear()
-        .domain([-8, 8])
+        .domain([yMin-0.5, yMax+0.5])
         .range([ height, 0]);
 
     margin_svg.append("g")
@@ -140,7 +140,7 @@ function updateChart(_d,num){
         .domain([xMin, xMax])
         .range([ 0, width ]);
     const y = d3.scaleLinear()
-        .domain([-8, 8])
+        .domain([yMin-0.5, yMax+0.5])
         .range([ height, 0]);
     if(num != _d.length){    
     margin_svg.append('g')
@@ -182,7 +182,7 @@ function showLine(_d){
         .domain([xMin, xMax])
         .range([ 0, width ]);
     const y = d3.scaleLinear()
-        .domain([-8, 8])
+        .domain([yMin-0.5, yMax+0.5])
         .range([ height, 0]);
 
     const x_values = _d.map(d => x(d.x));
@@ -217,7 +217,7 @@ function calculateCI(_d){ //questionable
         .domain([xMin, xMax])
         .range([ 0, width ]);
     const y = d3.scaleLinear()
-        .domain([-8, 8])
+        .domain([yMin-0.5, yMax+0.5])
         .range([ height, 0]);
 
     const x_values = _d.map(d => x(d.x));
@@ -247,7 +247,7 @@ function drawCILine(_d){
         .domain([xMin, xMax])
         .range([ 0, width ]);
     const y = d3.scaleLinear()
-        .domain([-8, 8])
+        .domain([yMin-0.5, yMax+0.5])
         .range([ height, 0]);
 
     const {m, b, ci_m, ci_b} = calculateCI(_d);

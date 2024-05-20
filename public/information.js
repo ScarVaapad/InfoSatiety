@@ -12,6 +12,6 @@ $( "#my-form" ).submit(function( event ) {
 
   //localStorage.setItem('taskData', JSON.stringify({'user_info': values}))
 
-  window.location.href = "sample.html?samplecnt=1";
+  window.location.href = "big5.html";
 
 });
