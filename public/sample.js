@@ -31,8 +31,6 @@ function readFileAndPrintRange(filename) {
     });
 }
 
-
-
 function getRandomInt(max) {
   return Math.floor(Math.random() * max);
 }
@@ -45,7 +43,7 @@ const w = 400;
 const h = 400;
 
 let maxCatIndex;
-let taskNum, taskCnt, useShape, colorPalette, colors, sampleCnt, prevValue;
+let taskNum, taskCnt, useShape, colorPalette, colors, sampleCnt, prevValue, permutationCnt;
 let timeleft = 150;
 let alreadyClick = false;
 prevValue = 0;
@@ -54,6 +52,7 @@ prevValue = 0;
 // let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
 let directory='./asset/Tasks/';
 let samples = ['cor0.3.csv','cor0.8.csv'];
+let permutations = [{'r':0,'m_x':0,'m_y':0},{'r':90,'m_x':-0.5,'m_y':0},{'r':60,'m_x':0.5,'m_y':0},{'r':-30,'m_x':-0.3,'m_y':0.3}];
 // let samples = ['cor0.1.csv','cor0.2.csv','cor0.3.csv','cor0.4.csv','cor0.5.csv','cor0.6.csv','cor0.7.csv','cor0.8.csv','cor0.9.csv'];
 
 // TEST: read all files and print the ranges
@@ -73,6 +72,9 @@ const margin_svg = svg.append("g")
 
 let x,y; // scales for the scatter plot
 let _d,xMin,xMax,yMin,yMax;
+
+// Centroid of the data for rotation and translation
+let centroid;
 
 // variables for adding data into the scatter plot
 // first, how many more data points will be revealed each time
@@ -95,11 +97,42 @@ let reward = 100;
 // variables for user behaviour data collection
 let userBehaviors= {};
 
+function calculateCentroid(data) {
+    let sumX = 0, sumY = 0;
+    data.forEach(point => {
+        point.x=+point.x;
+        point.y=+point.y;
+        sumX += point.x;
+        sumY += point.y;
+    });
+    return {x: sumX / data.length, y: sumY / data.length};
+}
+
+function visShift(r,m_x,m_y,_d){
+    let centroid = calculateCentroid(_d);
+    let cosR = Math.cos(r * Math.PI / 180);
+    let sinR = Math.sin(r * Math.PI / 180);
+
+    _d.forEach(point=>{
+        let x = point.x - centroid.x;
+        let y = point.y - centroid.y;
+        //rotation
+        let x_r = x * cosR - y * sinR;
+        let y_r = x * sinR + y * cosR;
+        //translation
+        point.x = x_r + centroid.x + m_x;
+        point.y = y_r + centroid.y + m_y;
+    })
+}
+
 function genChart() {
     const urlParams = new URLSearchParams(window.location.search);
     sampleCnt=urlParams.get("samplecnt");
+    permutationCnt=urlParams.get("permutationcnt");
+    let permutation = permutations[permutationCnt-1];
 
-    if (parseInt(sampleCnt) == samples.length) {
+
+    if (parseInt(sampleCnt) == samples.length && parseInt(permutationCnt) == permutations.length){
       $('#try-more-btn').hide()
     }
 
@@ -109,11 +142,12 @@ function genChart() {
     d3.csv(fname).then(function(data){
       _d = data;
     //   console.log(_d);
+    xMin = d3.min(_d, function(d) { return +d.x; });
+    xMax = d3.max(_d, function(d) { return +d.x; });
+    yMin = d3.min(_d, function(d) { return +d.y; });
+    yMax = d3.max(_d, function(d) { return +d.y; });
 
-    xMin = d3.min(data, function(d) { return +d.x; });
-    xMax = d3.max(data, function(d) { return +d.x; });
-    yMin = d3.min(data, function(d) { return +d.y; });
-    yMax = d3.max(data, function(d) { return +d.y; });
+
 
     x = d3.scaleLinear()
         .domain([xMin-0.5, xMax+0.5])
@@ -130,6 +164,10 @@ function genChart() {
     margin_svg.append("g")
         .call(d3.axisLeft(y).tickFormat((domainn,number)=>{return ""}));
 
+    let r = permutation.r;
+    let m_x = permutation.m_x;
+    let m_y = permutation.m_y;
+    visShift(r,m_x,m_y,_d)
     });
 }
 
@@ -167,7 +205,6 @@ function updateChart(_d,num){
         .attr("r", 3.5)
         .style("fill", "Grey"); 
     }
-    visShift()
 }
 
 function showLine(_d){
@@ -351,10 +388,15 @@ $("#submit-result-btn" ).click(function() {
 
 $("#next-btn").click(function(){
     //and if count is 3, submitting will result into the next page
-    if (parseInt(sampleCnt) == samples.length) {
+    if (parseInt(sampleCnt) == samples.length && parseInt(permutationCnt) == permutations.length){
         window.location.href = "finish.html";
     }else{
-        window.location.href = "sample.html?samplecnt="+(parseInt(sampleCnt)+1).toString();
+        if(parseInt(permutationCnt) == permutations.length){
+            sampleCnt=parseInt(sampleCnt)+1;
+            permutationCnt = 1;
+        }
+        let address = "sample.html?samplecnt="+sampleCnt.toString()+"&permutationcnt="+(parseInt(permutationCnt)+1).toString();
+        window.location.href = address;
     }
 });
 $(document).ready(function(){
