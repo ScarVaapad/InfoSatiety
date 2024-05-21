@@ -53,7 +53,8 @@ prevValue = 0;
 // let directory='./asset/Examples/';
 // let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
 let directory='./asset/Tasks/';
-let samples = ['t01_cor@0.3_m@1_b@0.csv','t02_cor@0.3_m@0.5_b@0.5.csv','t03_cor@0.3_m@-2_b@1.csv','t04_cor@0.3_m@-0.5_b@1.csv','t05_cor@0.8_m@2_b@2.csv','t06_cor@0.8_m@0.5_b@-1.csv','t07_cor@0.8_m@-1_b@-1.csv','t08_cor@0.8_m@-0.3_b@0.75.csv']
+let samples = ['cor0.3.csv','cor0.8.csv'];
+// let samples = ['cor0.1.csv','cor0.2.csv','cor0.3.csv','cor0.4.csv','cor0.5.csv','cor0.6.csv','cor0.7.csv','cor0.8.csv','cor0.9.csv'];
 
 // TEST: read all files and print the ranges
 // Read each file and print the range
@@ -70,6 +71,7 @@ const svg = d3.select("#sample-div")
 const margin_svg = svg.append("g")
   .attr("transform", `translate(${margin.left}, ${margin.top})`);
 
+let x,y; // scales for the scatter plot
 let _d,xMin,xMax,yMin,yMax;
 
 // variables for adding data into the scatter plot
@@ -113,15 +115,15 @@ function genChart() {
     yMin = d3.min(data, function(d) { return +d.y; });
     yMax = d3.max(data, function(d) { return +d.y; });
 
-    const x = d3.scaleLinear()
-        .domain([xMin, xMax])
+    x = d3.scaleLinear()
+        .domain([xMin-0.5, xMax+0.5])
         .range([ 0, width ]);
 
     margin_svg.append("g")
         .attr("transform", `translate(0, ${height})`)
         .call(d3.axisBottom(x).tickFormat((domainn,number)=>{return ""}));
 
-    const y = d3.scaleLinear()
+    y = d3.scaleLinear()
         .domain([yMin-0.5, yMax+0.5])
         .range([ height, 0]);
 
@@ -129,19 +131,11 @@ function genChart() {
         .call(d3.axisLeft(y).tickFormat((domainn,number)=>{return ""}));
 
     });
-
-
 }
 
 function updateChart(_d,num){
     num = +num;
     let d = _d.slice(0,num);
-    const x = d3.scaleLinear()
-        .domain([xMin, xMax])
-        .range([ 0, width ]);
-    const y = d3.scaleLinear()
-        .domain([yMin-0.5, yMax+0.5])
-        .range([ height, 0]);
     if(num != _d.length){    
     margin_svg.append('g')
         .selectAll("dot")
@@ -173,17 +167,11 @@ function updateChart(_d,num){
         .attr("r", 3.5)
         .style("fill", "Grey"); 
     }
-
+    visShift()
 }
 
 function showLine(_d){
     // draw the regression line for the data points on the scatterplot
-    const x = d3.scaleLinear()
-        .domain([xMin, xMax])
-        .range([ 0, width ]);
-    const y = d3.scaleLinear()
-        .domain([yMin-0.5, yMax+0.5])
-        .range([ height, 0]);
 
     const x_values = _d.map(d => x(d.x));
     const y_values = _d.map(d => y(d.y));
@@ -213,12 +201,6 @@ function showLine(_d){
 
 function calculateCI(_d){ //questionable
     // calculate the confidence interval for the regression line
-    const x = d3.scaleLinear()
-        .domain([xMin, xMax])
-        .range([ 0, width ]);
-    const y = d3.scaleLinear()
-        .domain([yMin-0.5, yMax+0.5])
-        .range([ height, 0]);
 
     const x_values = _d.map(d => x(d.x));
     const y_values = _d.map(d => y(d.y));
@@ -243,12 +225,6 @@ function calculateCI(_d){ //questionable
 
 function drawCILine(_d){
     // draw the confidence interval for the regression line
-    const x = d3.scaleLinear()
-        .domain([xMin, xMax])
-        .range([ 0, width ]);
-    const y = d3.scaleLinear()
-        .domain([yMin-0.5, yMax+0.5])
-        .range([ height, 0]);
 
     const {m, b, ci_m, ci_b} = calculateCI(_d);
     const reg_line_data = [{x: x(xMin), y: m * x(xMin) + b}, {x: x(xMax), y: m * x(xMax) + b}];
