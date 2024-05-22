@@ -47,12 +47,13 @@ let taskNum, taskCnt, useShape, colorPalette, colors, sampleCnt, prevValue, perm
 let timeleft = 150;
 let alreadyClick = false;
 prevValue = 0;
+let visCentroid; // when centroid of the data is calculated, also calculate the centroid of the visualization applying the scales
 
 // let directory='./asset/Examples/';
 // let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
 let directory='./asset/Tasks/';
-let samples = ['cor0.3.csv','cor0.8.csv'];
-let permutations = [{'r':0,'m_x':0,'m_y':0},{'r':90,'m_x':-0.5,'m_y':0},{'r':60,'m_x':0.5,'m_y':0},{'r':-30,'m_x':-0.3,'m_y':0.3}];
+let samples = ['cor0.3.csv','cor0.8.csv','cor0.5.csv'];
+let permutations = [{'r':0,'m_x':0,'m_y':0},{'r':90,'m_x':-0.5,'m_y':0},{'r':180,'m_x':0.8,'m_y':-0.2},{'r':270,'m_x':-0.3,'m_y':0.3}];
 // let samples = ['cor0.1.csv','cor0.2.csv','cor0.3.csv','cor0.4.csv','cor0.5.csv','cor0.6.csv','cor0.7.csv','cor0.8.csv','cor0.9.csv'];
 
 // TEST: read all files and print the ranges
@@ -73,12 +74,10 @@ const margin_svg = svg.append("g")
 let x,y; // scales for the scatter plot
 let _d,xMin,xMax,yMin,yMax;
 
-// Centroid of the data for rotation and translation
-let centroid;
 
 // variables for adding data into the scatter plot
 // first, how many more data points will be revealed each time
-const d_reveal = 5;
+const d_reveal = 3;
 // then, how many data points are revealed in total
 let d_total = 0;
 
@@ -89,6 +88,7 @@ let line = d3.line()
     .y(d => d.y);
 let isDrawing = false;
 let userLineData = [];
+let regLineData = [];
 let startPoint = null;
 
 // variables for reward calculation
@@ -96,6 +96,35 @@ let reward = 100;
 
 // variables for user behaviour data collection
 let userBehaviors= {};
+
+// give user a score!
+function userScore(reward,u_line,r_line,centroid){
+    let _reward = reward;
+
+    // Calculate the line coefficients from the two points
+    const a = u_line[1].y - u_line[0].y;
+    const b = u_line[0].x - u_line[1].x;
+    const c = u_line[1].x * u_line[0].y - u_line[0].x * u_line[1].y;
+
+    const center_dist = Math.abs(a * centroid.x + b * centroid.y + c) / Math.sqrt(a * a + b * b);
+
+    const slope_u = (u_line[1].y - u_line[0].y) / (u_line[1].x - u_line[0].x);
+    const slope_r = (r_line[1].y - r_line[0].y) / (r_line[1].x - r_line[0].x);
+
+    const line_angle = Math.abs(Math.atan((slope_u - slope_r) / (1 + slope_u * slope_r))) * 180 / Math.PI;
+
+    // Constants to define the rate of decay
+    // These can be adjusted to change how quickly the value decays
+    const distDecayRate = 0.1;
+    const degreeDecayRate = 0.1;
+    // Calculate the decay for distance and degree
+    const distDecay = Math.exp(-distDecayRate * center_dist);
+    const degreeDecay = Math.exp(-degreeDecayRate * line_angle);
+
+    const multiplier = distDecay * degreeDecay;
+
+    return multiplier, _reward * multiplier;
+}
 
 function calculateCentroid(data) {
     let sumX = 0, sumY = 0;
@@ -110,6 +139,8 @@ function calculateCentroid(data) {
 
 function visShift(r,m_x,m_y,_d){
     let centroid = calculateCentroid(_d);
+    visCentroid = {x: x(centroid.x + m_x) , y: y(centroid.y + m_y) };
+    console.log("visCentroid",visCentroid);
     let cosR = Math.cos(r * Math.PI / 180);
     let sinR = Math.sin(r * Math.PI / 180);
 
@@ -126,6 +157,11 @@ function visShift(r,m_x,m_y,_d){
 }
 
 function genChart() {
+    // genChart do the following things:
+    // 1. read the data file from parameters read from previous page/task and store it in _d
+    // 2. get min and max of x and y values in _d
+    // 3. create scales for x and y
+    // 4. rotate the data points according to the permutation
     const urlParams = new URLSearchParams(window.location.search);
     sampleCnt=urlParams.get("samplecnt");
     permutationCnt=urlParams.get("permutationcnt");
@@ -141,7 +177,7 @@ function genChart() {
 
     d3.csv(fname).then(function(data){
       _d = data;
-    //   console.log(_d);
+
     xMin = d3.min(_d, function(d) { return +d.x; });
     xMax = d3.max(_d, function(d) { return +d.x; });
     yMin = d3.min(_d, function(d) { return +d.y; });
@@ -150,24 +186,34 @@ function genChart() {
 
 
     x = d3.scaleLinear()
-        .domain([xMin-0.5, xMax+0.5])
-        .range([ 0, width ]);
+        .domain([xMin, xMax])
+        .range([ 0 , width ]);
 
     margin_svg.append("g")
         .attr("transform", `translate(0, ${height})`)
         .call(d3.axisBottom(x).tickFormat((domainn,number)=>{return ""}));
 
     y = d3.scaleLinear()
-        .domain([yMin-0.5, yMax+0.5])
+        .domain([yMin, yMax])
         .range([ height, 0]);
 
     margin_svg.append("g")
         .call(d3.axisLeft(y).tickFormat((domainn,number)=>{return ""}));
 
+    // If we want to debug with less data points
+    // _d = _d.slice(0,400)
+    console.log(_d);
+
     let r = permutation.r;
     let m_x = permutation.m_x;
     let m_y = permutation.m_y;
-    visShift(r,m_x,m_y,_d)
+    visShift(r,m_x,m_y,_d);
+
+    xMin = d3.min(_d, function(d) { return +d.x; });
+    xMax = d3.max(_d, function(d) { return +d.x; });
+    yMin = d3.min(_d, function(d) { return +d.y; });
+    yMax = d3.max(_d, function(d) { return +d.y; });
+
     });
 }
 
@@ -203,7 +249,8 @@ function updateChart(_d,num){
         .attr("cx", function (d) { return x(d.x); } )
         .attr("cy", function (d) { return y(d.y); } )
         .attr("r", 3.5)
-        .style("fill", "Grey"); 
+        .style("fill", "Grey")
+        .style("opacity", 0.3);
     }
 }
 
@@ -212,6 +259,11 @@ function showLine(_d){
 
     const x_values = _d.map(d => x(d.x));
     const y_values = _d.map(d => y(d.y));
+    let points = d3.zip(x_values, y_values);
+    let regline = ss.linearRegression(points);
+    console.log(points);
+    console.log(regline);
+
     const x_mean = d3.mean(x_values);
     const y_mean = d3.mean(y_values);
     const m = d3.sum(x_values.map((x, i) => (x - x_mean) * (y_values[i] - y_mean))) / d3.sum(x_values.map(x => (x - x_mean) ** 2));
@@ -226,14 +278,20 @@ function showLine(_d){
         .attr("d", line)
         .attr("id","regLine");
     console.log("Regression line drawn:");
-    
+
+    margin_svg.append("circle")
+        .attr("cx", visCentroid.x)
+        .attr("cy", visCentroid.y)
+        .attr("r", 10)
+        .style("fill", "red");
+
     reg_line_data.forEach(function(d){
         d.x += margin.left;
         d.y += margin.top;
     }
     ); 
     console.log(reg_line_data);
-     
+    regLineData = reg_line_data;
 }
 
 function calculateCI(_d){ //questionable
@@ -384,6 +442,9 @@ $("#submit-result-btn" ).click(function() {
     // alert("You have earned " + reward + " points!");
     userBehaviour.stop();
     userBehaviour.showResult();
+    let _multi, final_res;
+    multi,final_res = userScore(reward, userLineData, regLineData , visCentroid);
+    console.log("User score: ", _multi, final_res);
 });
 
 $("#next-btn").click(function(){
@@ -393,7 +454,7 @@ $("#next-btn").click(function(){
     }else{
         if(parseInt(permutationCnt) == permutations.length){
             sampleCnt=parseInt(sampleCnt)+1;
-            permutationCnt = 1;
+            permutationCnt = 0;
         }
         let address = "sample.html?samplecnt="+sampleCnt.toString()+"&permutationcnt="+(parseInt(permutationCnt)+1).toString();
         window.location.href = address;
