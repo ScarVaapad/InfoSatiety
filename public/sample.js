@@ -156,6 +156,18 @@ function visShift(r,m_x,m_y,_d){
     })
 }
 
+const filterDataInRange = (arrayOfObjects, min, max) => {
+    return arrayOfObjects.filter(obj =>
+        Object.entries(obj).every(([key, value]) => {
+            if (key === 'x' || key === 'y') {
+                const numValue = parseFloat(value);
+                return numValue >= min && numValue <= max;
+            }
+            return true;
+        })
+    );
+};
+
 function genChart() {
     // genChart do the following things:
     // 1. read the data file from parameters read from previous page/task and store it in _d
@@ -176,17 +188,16 @@ function genChart() {
     console.log(fname);
 
     d3.csv(fname).then(function(data){
-      _d = data;
 
-    xMin = d3.min(_d, function(d) { return +d.x; });
-    xMax = d3.max(_d, function(d) { return +d.x; });
-    yMin = d3.min(_d, function(d) { return +d.y; });
-    yMax = d3.max(_d, function(d) { return +d.y; });
+    _d = data;
 
-
+    _d.forEach(point => {
+        point.x=+point.x;
+        point.y=+point.y;
+    });
 
     x = d3.scaleLinear()
-        .domain([xMin, xMax])
+        .domain([-2, 2])
         .range([ 0 , width ]);
 
     margin_svg.append("g")
@@ -194,7 +205,7 @@ function genChart() {
         .call(d3.axisBottom(x).tickFormat((domainn,number)=>{return ""}));
 
     y = d3.scaleLinear()
-        .domain([yMin, yMax])
+        .domain([-2, 2])
         .range([ height, 0]);
 
     margin_svg.append("g")
@@ -208,6 +219,9 @@ function genChart() {
     let m_x = permutation.m_x;
     let m_y = permutation.m_y;
     visShift(r,m_x,m_y,_d);
+
+    _d = filterDataInRange(_d, -2, 2);
+    console.log(_d);
 
     xMin = d3.min(_d, function(d) { return +d.x; });
     xMax = d3.max(_d, function(d) { return +d.x; });
