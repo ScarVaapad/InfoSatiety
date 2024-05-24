@@ -51,9 +51,9 @@ let visCentroid; // when centroid of the data is calculated, also calculate the 
 
 // let directory='./asset/Examples/';
 // let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
-let directory='./asset/Tasks/';
+let directory='./asset/Tasks_trimmed/';
 let samples = ['cor0.3.csv','cor0.8.csv','cor0.5.csv'];
-let permutations = [{'r':0,'m_x':0,'m_y':0},{'r':90,'m_x':-0.5,'m_y':0},{'r':180,'m_x':0.8,'m_y':-0.2},{'r':270,'m_x':-0.3,'m_y':0.3}];
+let permutations = [{'r':0,'m_x':0,'m_y':0},{'r':90,'m_x':-0.5,'m_y':0},{'r':180,'m_x':-0.4,'m_y':-0.2},{'r':270,'m_x':-0.3,'m_y':0.3}];
 // let samples = ['cor0.1.csv','cor0.2.csv','cor0.3.csv','cor0.4.csv','cor0.5.csv','cor0.6.csv','cor0.7.csv','cor0.8.csv','cor0.9.csv'];
 
 // TEST: read all files and print the ranges
@@ -77,7 +77,7 @@ let _d,xMin,xMax,yMin,yMax;
 
 // variables for adding data into the scatter plot
 // first, how many more data points will be revealed each time
-const d_reveal = 3;
+const d_reveal = 5;
 // then, how many data points are revealed in total
 let d_total = 0;
 
@@ -233,8 +233,11 @@ function genChart() {
 
 function updateChart(_d,num){
     num = +num;
-    let d = _d.slice(0,num);
-    if(num != _d.length){    
+    // The offset allows us to have different initialization of the visualization, it might come handy for testing people's bias
+    const offset = 0;
+    let d = _d.slice(0+offset,num+offset);
+
+    if(num != _d.length){
     margin_svg.append('g')
         .selectAll("dot")
         .data(d)
@@ -243,7 +246,7 @@ function updateChart(_d,num){
         .join("circle")
         .attr("cx", function (d) { return x(d.x); } )
         .attr("cy", function (d) { return y(d.y); } )
-        .attr("r", 3.5)
+        .attr("r", 2.5)
         .style("fill", "Black" )
         .transition(3000)
         .style("fill", function(d, i) {
@@ -253,6 +256,7 @@ function updateChart(_d,num){
                 return "Blue"; // Color for new data points
             }
         });
+    showLine(d);
     }else{//if all data points are shown, then all data points are grey, allowing user to see the regression line in yellow?
         margin_svg.append('g')
         .selectAll("dot")
@@ -262,7 +266,7 @@ function updateChart(_d,num){
         .join("circle")
         .attr("cx", function (d) { return x(d.x); } )
         .attr("cy", function (d) { return y(d.y); } )
-        .attr("r", 3.5)
+        .attr("r", 2.5)
         .style("fill", "Grey")
         .style("opacity", 0.3);
     }
@@ -270,6 +274,7 @@ function updateChart(_d,num){
 
 function showLine(_d){
     // draw the regression line for the data points on the scatterplot
+
 
     const x_values = _d.map(d => x(d.x));
     const y_values = _d.map(d => y(d.y));
@@ -283,6 +288,8 @@ function showLine(_d){
     const m = d3.sum(x_values.map((x, i) => (x - x_mean) * (y_values[i] - y_mean))) / d3.sum(x_values.map(x => (x - x_mean) ** 2));
     const b = y_mean - m * x_mean;
     const reg_line_data = [{x: x(xMin), y: m * x(xMin) + b}, {x: x(xMax), y: m * x(xMax) + b}];
+
+    console.log("reg_line_data: ", reg_line_data);
 
     margin_svg.append("path") // Draw the regression line
         .datum(reg_line_data)
@@ -456,9 +463,9 @@ $("#submit-result-btn" ).click(function() {
     // alert("You have earned " + reward + " points!");
     userBehaviour.stop();
     userBehaviour.showResult();
-    let _multi, final_res;
-    multi,final_res = userScore(reward, userLineData, regLineData , visCentroid);
-    console.log("User score: ", _multi, final_res);
+    // let _multi, final_res;
+    // _multi,final_res = userScore(reward, userLineData, regLineData , visCentroid);
+    // console.log("User score: ", _multi, final_res);
 });
 
 $("#next-btn").click(function(){
