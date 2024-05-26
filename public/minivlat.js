@@ -8,7 +8,7 @@ $(document).ready(function () {
 
 });
 
-$( "#task-desc" ).submit(function( event ) {
+$("#task-desc").click(function( event ) {
     // alert( "Handler for .submit() called." );
     event.preventDefault();
 
