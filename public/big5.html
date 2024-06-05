@@ -12,46 +12,110 @@
     <div class="col"></div>
     <div class="col-10 h-75" style="background-color: #eee; border-radius: 20px">
       <div class="d-flex justify-content-center" style="padding-top: 20px;">
-        <h3>Demographic Information</h3>
+        <h3>Personality Test</h3>
+      </div>
+      <div class="custom-row"></div>
+      <div class="custom-row" style="height: 7%;">
+        <p>How well do the following statements describe your personality?</p>
       </div>
       <div class="justify-content-center" style="padding-left: 10px; padding-bottom: 10px;">
         <form id="my-form">
-          <div class="col-md-3" style="padding-top: 30px">
-            <p>Big 5 Q1:</p>
-            <select class="form-select" id="gender-select" name="gender" required>
-              <option selected disabled value="">Choose...</option>
-              <option value="M">Male</option>
-              <option value="F">Female</option>
-              <option value="O">Other</option>
-              <option value="N">Rather not to tell</option>
-            </select>
-          </div>
-          <div class="col-md-3" style="padding-top: 30px">
-            <p> What is your age?</p>
-            <select class="form-select" id="age-select" name="age" required>
-              <option selected disabled value="">Choose...</option>
-              <option value="18-29">18-29</option>
-              <option value="30-39">30-39</option>
-              <option value="40-49">40-49</option>
-              <option value="50-59">50-59</option>
-              <option value="60-69">60-69</option>
-              <option value="70+">70+</option>
-            </select>
-          </div>
-          <div style="padding-top: 30px">
-            <p>What is your highest level of education?</p>
-            <div class="col-md-4" tyle="padding-top: 30px">
-              <select class="form-select" id="education-select" name="education" required>
-                <option selected disabled value="">Choose...</option>
-                <option value="Pre-High School">Pre-High School</option>
-                <option value="High School">High School</option>
-                <option value="Some College">Some College</option>
-                <option value="Graduated from College">Graduated from College</option>
-                <option value="Graduate Degree">Graduate Degree</option>
-                <option value="Other">Other</option>
-              </select>
-            </div>
-          </div>
+
+          <table class="table">
+            <thead>
+            <tr>
+              <th>I see myself as someone who...</th>
+              <th>Disagree strongly</th>
+              <th>Disagree a little</th>
+              <th>Neither agree nor disagree</th>
+              <th>Agree a little</th>
+              <th>Agree strongly</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+              <td>is reserved</td>
+              <td><input type="radio" name="1" value="1"></td>
+              <td><input type="radio" name="1" value="2"></td>
+              <td><input type="radio" name="1" value="3"></td>
+              <td><input type="radio" name="1" value="4"></td>
+              <td><input type="radio" name="1" value="5"></td>
+            </tr>
+            <tr>
+              <td>is generally trusting</td>
+              <td><input type="radio" name="2" value="1"></td>
+              <td><input type="radio" name="2" value="2"></td>
+              <td><input type="radio" name="2" value="3"></td>
+              <td><input type="radio" name="2" value="4"></td>
+              <td><input type="radio" name="2" value="5"></td>
+            </tr>
+            <tr>
+              <td>tends to be lazy</td>
+              <td><input type="radio" name="3" value="1"></td>
+              <td><input type="radio" name="3" value="2"></td>
+              <td><input type="radio" name="3" value="3"></td>
+              <td><input type="radio" name="3" value="4"></td>
+              <td><input type="radio" name="3" value="5"></td>
+            </tr>
+            <tr>
+              <td>is relaxed, handles stress well</td>
+              <td><input type="radio" name="4" value="1"></td>
+              <td><input type="radio" name="4" value="2"></td>
+              <td><input type="radio" name="4" value="3"></td>
+              <td><input type="radio" name="4" value="4"></td>
+              <td><input type="radio" name="4" value="5"></td>
+            </tr>
+            <tr>
+              <td>has few artistic interests</td>
+              <td><input type="radio" name="5" value="1"></td>
+              <td><input type="radio" name="5" value="2"></td>
+              <td><input type="radio" name="5" value="3"></td>
+              <td><input type="radio" name="5" value="4"></td>
+              <td><input type="radio" name="5" value="5"></td>
+            </tr>
+            <tr>
+              <td>is outgoing, sociable</td>
+              <td><input type="radio" name="6" value="1"></td>
+              <td><input type="radio" name="6" value="2"></td>
+              <td><input type="radio" name="6" value="3"></td>
+              <td><input type="radio" name="6" value="4"></td>
+              <td><input type="radio" name="6" value="5"></td>
+            </tr>
+            <tr>
+              <td>tends to find fault with others</td>
+              <td><input type="radio" name="7" value="1"></td>
+              <td><input type="radio" name="7" value="2"></td>
+              <td><input type="radio" name="7" value="3"></td>
+              <td><input type="radio" name="7" value="4"></td>
+              <td><input type="radio" name="7" value="5"></td>
+            </tr>
+            <tr>
+              <td>does a thorough job</td>
+              <td><input type="radio" name="8" value="1"></td>
+              <td><input type="radio" name="8" value="2"></td>
+              <td><input type="radio" name="8" value="3"></td>
+              <td><input type="radio" name="8" value="4"></td>
+              <td><input type="radio" name="8" value="5"></td>
+            </tr>
+            <tr>
+              <td>gets nervous easily</td>
+              <td><input type="radio" name="9" value="1"></td>
+              <td><input type="radio" name="9" value="2"></td>
+              <td><input type="radio" name="9" value="3"></td>
+              <td><input type="radio" name="9" value="4"></td>
+              <td><input type="radio" name="9" value="5"></td>
+            </tr>
+            <tr>
+              <td>has an active imagination</td>
+              <td><input type="radio" name="10" value="1"></td>
+              <td><input type="radio" name="10" value="2"></td>
+              <td><input type="radio" name="10" value="3"></td>
+              <td><input type="radio" name="10" value="4"></td>
+              <td><input type="radio" name="10" value="5"></td>
+            </tr>
+            <!-- Add more rows as needed -->
+            </tbody>
+          </table>
           <div class="d-flex justify-content-center" style="padding-top: 20px;">
             <button type="submit" class="btn btn-primary" style="width: 35%;" id="start-sample-btn">Next</button>
           </div>

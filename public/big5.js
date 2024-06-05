@@ -12,6 +12,6 @@ $( "#my-form" ).submit(function( event ) {
 
     //localStorage.setItem('taskData', JSON.stringify({'user_info': values}))
 
-    window.location.href = "MiniVlat.html";
+    window.location.href = "pre_miniVlat.html";
 
 });
