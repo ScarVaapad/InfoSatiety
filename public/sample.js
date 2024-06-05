@@ -51,7 +51,7 @@ let visCentroid; // when centroid of the data is calculated, also calculate the 
 
 // let directory='./asset/Examples/';
 // let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
-let directory='./asset/Tasks_trimmed/';
+let directory='./asset/Tasks/';
 let samples = ['cor0.3.csv','cor0.8.csv','cor0.5.csv'];
 let permutations = [{'r':0,'m_x':0,'m_y':0},{'r':90,'m_x':-0.5,'m_y':0},{'r':180,'m_x':-0.4,'m_y':-0.2},{'r':270,'m_x':-0.3,'m_y':0.3}];
 // let samples = ['cor0.1.csv','cor0.2.csv','cor0.3.csv','cor0.4.csv','cor0.5.csv','cor0.6.csv','cor0.7.csv','cor0.8.csv','cor0.9.csv'];
@@ -139,8 +139,8 @@ function calculateCentroid(data) {
 
 function visShift(r,m_x,m_y,_d){
     let centroid = calculateCentroid(_d);
-    visCentroid = {x: x(centroid.x + m_x) , y: y(centroid.y + m_y) };
-    console.log("visCentroid",visCentroid);
+    // visCentroid = {x: x(centroid.x + m_x) , y: y(centroid.y + m_y) };
+    // console.log("visCentroid",visCentroid);
     let cosR = Math.cos(r * Math.PI / 180);
     let sinR = Math.sin(r * Math.PI / 180);
 
@@ -228,13 +228,16 @@ function genChart() {
     yMin = d3.min(_d, function(d) { return +d.y; });
     yMax = d3.max(_d, function(d) { return +d.y; });
 
+    let centroid = calculateCentroid(_d);
+    visCentroid = {x: x(centroid.x) , y: y(centroid.y) };
+
     });
 }
 
 function updateChart(_d,num){
     num = +num;
     // The offset allows us to have different initialization of the visualization, it might come handy for testing people's bias
-    const offset = 0;
+    const offset = (permutationCnt-1)*50;
     let d = _d.slice(0+offset,num+offset);
 
     if(num != _d.length){
@@ -291,16 +294,20 @@ function showLine(_d){
 
     console.log("reg_line_data: ", reg_line_data);
 
+    //margin_svg.selectAll(".regLine").remove();
+    margin_svg.selectAll(".regLine")
+    .attr("stroke", "grey");
+
     margin_svg.append("path") // Draw the regression line
         .datum(reg_line_data)
         .attr("fill", "none")
         .attr("stroke", "blue")
         .attr("stroke-width", 2.5)
         .attr("d", line)
-        .attr("id","regLine");
+        .attr("class","regLine");
     console.log("Regression line drawn:");
 
-    margin_svg.append("circle")
+    margin_svg.append("circle") // Draw the centroid of the data points
         .attr("cx", visCentroid.x)
         .attr("cy", visCentroid.y)
         .attr("r", 10)
