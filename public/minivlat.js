@@ -49,6 +49,11 @@ let vis_file,vis_question,vis_choices,vis_correct_answer;
 let user_response = {};
 let user_minivlat_score = 0;
 
+function task_finish_handler(){
+
+}
+
+
 $(document).ready(function () {
     const urlParams = new URLSearchParams(window.location.search);
     vlatCnt = urlParams.get("vlat_cnt");
@@ -103,7 +108,7 @@ var downloadTimer = setInterval(function(){
     if(timeleft <= 0){
         clearInterval(downloadTimer);
         document.getElementById("countdown").innerHTML = "Time remaining: 0";
-        window.location.href = "MiniVlat.html?vlat_cnt="+(parseInt(vlatCnt)+1).toString();
+        task_finish_handler();
     } else {
         document.getElementById("countdown").innerHTML = "Time remaining: " + timeleft/10 ;
     }
