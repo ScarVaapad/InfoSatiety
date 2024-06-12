@@ -47,15 +47,36 @@ let correct_answers = ["False", "Great Britain", "30-40 km", "True", "17.6%", "S
 
 let vis_file,vis_question,vis_choices,vis_correct_answer;
 let user_response = {};
-let user_minivlat_score = 0;
+let user_minivlat_score;
 
 function task_finish_handler(){
+    let selected = $("input[type='radio'][name='vlat-choices']:checked");
+    if(selected.length > 0){
+        user_response[vis_question] = selected.val();
+        if(selected.val() == vis_correct_answer){
+            user_minivlat_score += 1;
+        }
+    }
+    console.log('mini vlat score: ', user_minivlat_score);
+    localStorage.setItem('minivlat_score', user_minivlat_score);
 
+    if(vlatCnt == vlat_files.length){
+        window.location.href = "task_description.html";
+    }
+    else{
+        window.location.href = "MiniVlat.html?vlat_cnt="+(parseInt(vlatCnt)+1).toString();
+    }
 }
 
 
 $(document).ready(function () {
     const urlParams = new URLSearchParams(window.location.search);
+    if(localStorage.getItem('minivlat_score') === null) {
+        user_minivlat_score = 0;
+    }
+    else{
+        user_minivlat_score = parseInt(localStorage.getItem('minivlat_score'));
+    }
     vlatCnt = urlParams.get("vlat_cnt");
 
     if(vlatCnt == vlat_files.length){
@@ -83,24 +104,10 @@ $(document).ready(function () {
 });
 
 $("#next-btn").click(function() {
-    let selected = $("input[type='radio'][name='vlat-choices']:checked");
-    if(selected.length > 0){
-        user_response[vis_question] = selected.val();
-        if(selected.val() == vis_correct_answer){
-            user_minivlat_score += 1;
-        }
-        window.location.href = "MiniVlat.html?vlat_cnt="+(parseInt(vlatCnt)+1).toString();
-    }else{
-        alert("Please select an answer");
-    }
+    task_finish_handler();
 });
 $("#task-desc").click(function( event ) {
-    // alert( "Handler for .submit() called." );
-    event.preventDefault();
-
-    //localStorage.setItem('taskData', JSON.stringify({'user_info': values}))
-
-    window.location.href = "task_description.html";
+    task_finish_handler();
 
 });
 

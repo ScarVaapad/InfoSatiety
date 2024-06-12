@@ -23,10 +23,10 @@ $( "#my-form" ).submit(function( event ) {
 
         $.each($('#my-form').serializeArray(), function(i, field) {
             values[field.name] = field.value;
-            console.log(values);
+            //console.log(values);
         });
 
-        //localStorage.setItem('taskData', JSON.stringify({'user_info': values}))
+        localStorage.setItem('Personality', JSON.stringify( values));
 
         window.location.href = "pre_miniVlat.html";
     }
