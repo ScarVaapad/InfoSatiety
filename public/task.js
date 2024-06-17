@@ -43,7 +43,7 @@ const w = 400;
 const h = 400;
 
 let maxCatIndex;
-let taskNum, taskCnt, useShape, colorPalette, colors, sampleCnt, prevValue, permutationCnt;
+let taskNum, taskCnt, useShape, colorPalette, colors, prevValue, permutationCnt;
 let timeleft = 150;
 let alreadyClick = false;
 prevValue = 0;
@@ -52,15 +52,15 @@ let visCentroid; // when centroid of the data is calculated, also calculate the 
 // let directory='./asset/Examples/';
 // let samples = ['s01_cor@0.5_m@1.5_b@0.5.csv','s02_cor@0.2_m@0.8_b@-0.8.csv','s03_cor@0.9_m@-1.8_b@-0.5.csv']
 let directory='./asset/Tasks/';
-let samples = ['cor0.3.csv','cor0.8.csv','cor0.5.csv'];
-let permutations = [{'r':0,'m_x':0,'m_y':0},{'r':90,'m_x':-0.5,'m_y':0},{'r':180,'m_x':-0.4,'m_y':-0.2},{'r':270,'m_x':-0.3,'m_y':0.3}];
+let samples = ['cor0.3.csv','cor0.8.csv','cor0.3.csv','cor0.8.csv','cor0.8.csv','cor0.3.csv','cor0.8.csv','cor0.3.csv'];
+let permutations = [{'r':0,'m_x':0,'m_y':0},{'r':90,'m_x':-0.5,'m_y':0},{'r':180,'m_x':-0.4,'m_y':-0.2},{'r':270,'m_x':-0.3,'m_y':0.3},{'r':0,'m_x':0,'m_y':0},{'r':90,'m_x':-0.5,'m_y':0},{'r':180,'m_x':-0.4,'m_y':-0.2},{'r':270,'m_x':-0.3,'m_y':0.3}];
 // let samples = ['cor0.1.csv','cor0.2.csv','cor0.3.csv','cor0.4.csv','cor0.5.csv','cor0.6.csv','cor0.7.csv','cor0.8.csv','cor0.9.csv'];
 
 // TEST: read all files and print the ranges
 // Read each file and print the range
 let filenames = samples.map(function(sample) {
     return directory + sample;});//appending directory to file path
-filenames.forEach(readFileAndPrintRange);
+// filenames.forEach(readFileAndPrintRange);
 
 const svg = d3.select("#sample-div")
   .append("svg")
@@ -95,35 +95,44 @@ let startPoint = null;
 let reward = 100;
 
 // variables for user behaviour data collection
-let userBehaviors= {};
+let userBehaviours= {};
 
 // give user a score!
 function userScore(reward,u_line,r_line,centroid){
-    let _reward = reward;
+    if(u_line.length==0){
+        return 0;
+    }
+    else{
+        let _reward = reward;
 
-    // Calculate the line coefficients from the two points
-    const a = u_line[1].y - u_line[0].y;
-    const b = u_line[0].x - u_line[1].x;
-    const c = u_line[1].x * u_line[0].y - u_line[0].x * u_line[1].y;
+        // Calculate the line coefficients from the two points
+        const a = u_line[1].y - u_line[0].y;
+        const b = u_line[0].x - u_line[1].x;
+        const c = u_line[1].x * u_line[0].y - u_line[0].x * u_line[1].y;
 
-    const center_dist = Math.abs(a * centroid.x + b * centroid.y + c) / Math.sqrt(a * a + b * b);
+        const center_dist = Math.abs(a * centroid.x + b * centroid.y + c) / Math.sqrt(a * a + b * b);
 
-    const slope_u = (u_line[1].y - u_line[0].y) / (u_line[1].x - u_line[0].x);
-    const slope_r = (r_line[1].y - r_line[0].y) / (r_line[1].x - r_line[0].x);
+        const slope_u = (u_line[1].y - u_line[0].y) / (u_line[1].x - u_line[0].x);
+        const slope_r = (r_line[1].y - r_line[0].y) / (r_line[1].x - r_line[0].x);
 
-    const line_angle = Math.abs(Math.atan((slope_u - slope_r) / (1 + slope_u * slope_r))) * 180 / Math.PI;
+        const line_angle = Math.abs(Math.atan((slope_u - slope_r) / (1 + slope_u * slope_r))) * 180 / Math.PI;
 
-    // Constants to define the rate of decay
-    // These can be adjusted to change how quickly the value decays
-    const distDecayRate = 0.1;
-    const degreeDecayRate = 0.1;
-    // Calculate the decay for distance and degree
-    const distDecay = Math.exp(-distDecayRate * center_dist);
-    const degreeDecay = Math.exp(-degreeDecayRate * line_angle);
+        // Constants to define the rate of decay
+        // These can be adjusted to change how quickly the value decays
+        const distDecayRate = 0.001;
+        const degreeDecayRate = 0.02;
+        // Calculate the decay for distance and degree
+        const distDecay = Math.exp(-distDecayRate * center_dist);
+        const degreeDecay = Math.exp(-degreeDecayRate * line_angle);
 
-    const multiplier = distDecay * degreeDecay;
-
-    return multiplier, _reward * multiplier;
+        let multiplier = distDecay * degreeDecay;
+        console.log("center distance",center_dist);
+        console.log("distance decay",distDecay);
+        console.log("line angle",line_angle);
+        console.log("degree decay",degreeDecay);
+        console.log("multiplier",multiplier);
+        return _reward * multiplier;
+    }
 }
 
 function calculateCentroid(data) {
@@ -175,16 +184,16 @@ function genChart() {
     // 3. create scales for x and y
     // 4. rotate the data points according to the permutation
     const urlParams = new URLSearchParams(window.location.search);
-    sampleCnt=urlParams.get("samplecnt");
+    taskCnt=urlParams.get("taskCnt");
     permutationCnt=urlParams.get("permutationcnt");
     let permutation = permutations[permutationCnt-1];
 
 
-    if (parseInt(sampleCnt) == samples.length && parseInt(permutationCnt) == permutations.length){
+    if (parseInt(taskCnt) == samples.length && parseInt(permutationCnt) == permutations.length){
       $('#try-more-btn').hide()
     }
 
-    const fname = directory+samples[sampleCnt-1];
+    const fname = directory+samples[taskCnt-1];
     console.log(fname);
 
     d3.csv(fname).then(function(data){
@@ -213,7 +222,7 @@ function genChart() {
 
     // If we want to debug with less data points
     // _d = _d.slice(0,400)
-    console.log(_d);
+   // console.log(_d);
 
     let r = permutation.r;
     let m_x = permutation.m_x;
@@ -221,7 +230,7 @@ function genChart() {
     visShift(r,m_x,m_y,_d);
 
     _d = filterDataInRange(_d, -2, 2);
-    console.log(_d);
+   // console.log(_d);
 
     xMin = d3.min(_d, function(d) { return +d.x; });
     xMax = d3.max(_d, function(d) { return +d.x; });
@@ -259,7 +268,7 @@ function updateChart(_d,num){
                 return "Blue"; // Color for new data points
             }
         });
-    showLine(d);
+    //showLine(d);
     }else{//if all data points are shown, then all data points are grey, allowing user to see the regression line in yellow?
         margin_svg.append('g')
         .selectAll("dot")
@@ -283,8 +292,8 @@ function showLine(_d){
     const y_values = _d.map(d => y(d.y));
     let points = d3.zip(x_values, y_values);
     let regline = ss.linearRegression(points);
-    console.log(points);
-    console.log(regline);
+    // console.log(points);
+    // console.log(regline);
 
     const x_mean = d3.mean(x_values);
     const y_mean = d3.mean(y_values);
@@ -292,7 +301,7 @@ function showLine(_d){
     const b = y_mean - m * x_mean;
     const reg_line_data = [{x: x(xMin), y: m * x(xMin) + b}, {x: x(xMax), y: m * x(xMax) + b}];
 
-    console.log("reg_line_data: ", reg_line_data);
+    // console.log("reg_line_data: ", reg_line_data);
 
     //margin_svg.selectAll(".regLine").remove();
     margin_svg.selectAll(".regLine")
@@ -301,24 +310,24 @@ function showLine(_d){
     margin_svg.append("path") // Draw the regression line
         .datum(reg_line_data)
         .attr("fill", "none")
-        .attr("stroke", "blue")
+        .attr("stroke", "white")
         .attr("stroke-width", 2.5)
         .attr("d", line)
         .attr("class","regLine");
-    console.log("Regression line drawn:");
+    // console.log("Regression line drawn:");
 
-    margin_svg.append("circle") // Draw the centroid of the data points
-        .attr("cx", visCentroid.x)
-        .attr("cy", visCentroid.y)
-        .attr("r", 10)
-        .style("fill", "red");
+    // margin_svg.append("circle") // Draw the centroid of the data points
+    //     .attr("cx", visCentroid.x)
+    //     .attr("cy", visCentroid.y)
+    //     .attr("r", 10)
+    //     .style("fill", "red");
 
     reg_line_data.forEach(function(d){
         d.x += margin.left;
         d.y += margin.top;
     }
     ); 
-    console.log(reg_line_data);
+    // console.log(reg_line_data);
     regLineData = reg_line_data;
 }
 
@@ -419,7 +428,7 @@ $("#draw-line-btn").click(function(){
 //user can only draw one line once, and adjust the end points
     //user line data stored as global variable: userLineData
     userBehaviour.stop();
-    userBehaviors["before-draw-line"] = userBehaviour.showResult();
+    userBehaviours["request-data"] = userBehaviour.showResult();
 
     $("#add-more-btn").prop('disabled', true).css('background-color', 'grey');
     svg.on("mousedown", function(event) {
@@ -444,8 +453,8 @@ $("#draw-line-btn").click(function(){
         })
         .on("mouseup", function() {
             isDrawing = false;
-            console.log("User line drawn:");
-            console.log(userLineData);
+            // console.log("User line drawn:");
+            // console.log(userLineData);
         });
 });
 //Need to be reimplented
@@ -459,38 +468,46 @@ $("#submit-result-btn" ).click(function() {
     svg.on("mouseup",null);
     //pass the data to the database
 
-    updateChart(_d,_d.length);
+    // updateChart(_d,_d.length);
     // then, show the regression line of the scatterplot
     showLine(_d);
-    drawCILine(_d);
+    // drawCILine(_d);
     $("#submit-result-btn").hide();
     $("#next-btn").show();
 
     // show the reward
-    // alert("You have earned " + reward + " points!");
+
     userBehaviour.stop();
     userBehaviour.showResult();
-    // let _multi, final_res;
-    // _multi,final_res = userScore(reward, userLineData, regLineData , visCentroid);
-    // console.log("User score: ", _multi, final_res);
+    userBehaviours["draw-line"] = userBehaviour.showResult();
+
+    let final_res = userScore(reward, userLineData, regLineData , visCentroid);
+    // alert("You have earned " + final_res + " points!");
+    console.log("User score: ", final_res);
 });
 
 $("#next-btn").click(function(){
+    let results ={}
+    results["request_behavior"] = userBehaviours["request-data"];
+    results["data_points"] = d_total;
+    results["draw_behavior"] = userBehaviours["draw-line"];
+    results["regLineData"] = regLineData;
+    results["userLineData"] = userLineData;
+
+    localStorage.setItem("task_"+taskCnt.toString(), JSON.stringify(results));
     //and if count is 3, submitting will result into the next page
-    if (parseInt(sampleCnt) == samples.length && parseInt(permutationCnt) == permutations.length){
-        window.location.href = "finish.html";
+    if (parseInt(taskCnt) == samples.length){
+        window.location.href = "post_task.html";
     }else{
-        if(parseInt(permutationCnt) == permutations.length){
-            sampleCnt=parseInt(sampleCnt)+1;
-            permutationCnt = 0;
-        }
-        let address = "sample.html?samplecnt="+sampleCnt.toString()+"&permutationcnt="+(parseInt(permutationCnt)+1).toString();
+        taskCnt=parseInt(taskCnt)+1;
+        permutationCnt = parseInt(permutationCnt)+1;
+        let address = "task.html?taskCnt="+taskCnt.toString()+"&permutationcnt="+permutationCnt.toString();
         window.location.href = address;
     }
 });
 $(document).ready(function(){
     genChart();
-    $("#progresss-txt").text(sampleCnt+"/3");
+    $("#progresss-txt").text(taskCnt+"/8");
     $("#slider-control").hide();//pause the slider as we don't use it in our tasks.
     $("#add-more-btn").show();
     $("#draw-line-btn").show();
