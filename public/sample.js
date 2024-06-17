@@ -259,7 +259,7 @@ function updateChart(_d,num){
                 return "Blue"; // Color for new data points
             }
         });
-    showLine(d);
+    //showLine(d);
     }else{//if all data points are shown, then all data points are grey, allowing user to see the regression line in yellow?
         margin_svg.append('g')
         .selectAll("dot")
